@@ -28,8 +28,8 @@ and add `"PipecatClientIOS"` to your application/library target, `dependencies`,
 ## References
 - [RTVI-AI overview](https://github.com/rtvi-ai/).
 - [RTVI-AI reference docs](https://rtvi.mintlify.app/api-reference/introduction).
-- [rtvi-client-ios SDK docs](https://rtvi-client-ios-docs.vercel.app/RTVIClientIOS/documentation/rtviclientios).
-- [rtvi-client-ios-daily SDK docs](https://rtvi-client-ios-docs.vercel.app/RTVIClientIOSDaily/documentation/rtviclientiosdaily).
+- [pipecat-client-ios SDK docs](https://rtvi-client-ios-docs.vercel.app/PipecatClientIOS/documentation/pipecatclientios).
+- [pipecat-client-ios-daily SDK docs](https://rtvi-client-ios-docs.vercel.app/PipecatClientIOSDaily/documentation/pipecatclientiosdaily).
 
 ## Contributing
 
