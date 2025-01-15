@@ -1,5 +1,5 @@
 import XCTest
-@testable import RTVIClientIOS
+@testable import PipecatClientIOS
 
 final class RTVIClientIOSTests: XCTestCase {
     func testExample() throws {

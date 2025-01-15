@@ -8,11 +8,11 @@ xcodebuild docbuild -scheme 'PipecatClientIOS' -destination "generic/platform=iO
 
 # convert the doc archive for static hosting
 $(xcrun --find docc) process-archive transform-for-static-hosting \
-./tmpDocs/Build/Products/Debug-iphoneos/RTVIClientIOS.doccarchive \
+./tmpDocs/Build/Products/Debug-iphoneos/PipecatClientIOS.doccarchive \
 --output-path ./tmpDocs/htmldoc \
 --hosting-base-path $URL_BASE_PATH
 # In case we need to change the host path
 # more details here: https://www.createwithswift.com/publishing-docc-documention-as-a-static-website-on-github-pages/
 # --hosting-base-path URL_BASE_PATH
 
-# To access the docs, need to access: /documentation/RTVIClientIOS/
+# To access the docs, need to access: /documentation/PipecatClientIOS/
