@@ -1,4 +1,23 @@
-# 0.2.0
+# 0.3.2 - 2025-01-15
+
+### Changed
+
+- Refactored the `PipecatClientIOS` target to enable publishing to CocoaPods.
+  - **Breaking Change:** Replace imports of `RTVIClientIOS` with `PipecatClientIOS`.
+
+# 0.3.1 - 2025-01-03
+
+### Added
+
+- Added improvements to support the `GeminiLiveWebSocket` transport.
+
+## 0.3.0 - 2024-12-10
+
+### Changed
+
+- Renamed the package from `RTVIClientIOS` to `PipecatClientIOS`.
+
+## 0.2.0 - 2024-10-10
 
 - Adding support for the HTTP action.
 - Renamed:
