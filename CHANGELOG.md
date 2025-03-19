@@ -1,3 +1,9 @@
+# 0.3.3 - 2025-03-19
+
+### Added
+
+- Added improvements to support new transports to send transcription events.
+
 # 0.3.2 - 2025-01-15
 
 ### Changed

@@ -81,7 +81,7 @@ open class RTVIClient {
             Logger.shared.warn("RECEIVED ON ERROR \(voiceMessage)")
             _ = self.messageDispatcher.reject(message: voiceMessage)
             if let botError = try? JSONDecoder().decode(BotError.self, from: Data(voiceMessage.data!.utf8)) {
-                let errorMessage = "Received a fatal error from the Bot: \(botError.error)"
+                let errorMessage = "Received an error from the Bot: \(botError.error)"
                 self.delegate?.onError(message: errorMessage)
                 if(botError.fatal ?? false) {
                     self.disconnect(completion: nil)
