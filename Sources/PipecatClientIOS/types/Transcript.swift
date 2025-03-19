@@ -14,7 +14,7 @@ public struct Transcript: Codable {
         case userId = "user_id"
     }
     
-    public init(text: String, final: Bool?, timestamp: String?, userId: String?) {
+    public init(text: String, final: Bool? = false, timestamp: String? = nil, userId: String? = nil) {
         self.text = text
         self.final = final
         self.timestamp = timestamp
