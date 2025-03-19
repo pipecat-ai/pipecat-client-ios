@@ -14,6 +14,13 @@ public struct Transcript: Codable {
         case userId = "user_id"
     }
     
+    public init(text: String, final: Bool?, timestamp: String?, userId: String?) {
+        self.text = text
+        self.final = final
+        self.timestamp = timestamp
+        self.userId = userId
+    }
+    
     public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.text = try container.decode(String.self, forKey: .text)
