@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name         = 'PipecatClientIOS'
-  s.version      = '0.3.3'
+  s.version      = '0.3.4'
   s.summary      = 'Pipecat iOS client library.'
   s.description  = <<-DESC
                     Pipecat iOS client library that implements the RTVI-AI standard.
