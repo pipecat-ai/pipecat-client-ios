@@ -1,3 +1,9 @@
+# 0.3.3 - 2025-03-20
+
+### Added
+
+- Made changes to enable transports to handle function calling.
+
 # 0.3.3 - 2025-03-19
 
 ### Added

@@ -13,15 +13,15 @@ public extension LLMHelperDelegate {
     func onLLMFunctionCallStart(functionName: String) {}
 }
 
-private struct LLMMessageType {
-    struct Incoming {
-        static let LLMFunctionCall = "llm-function-call"
-        static let LLMFunctionCallStart = "llm-function-call-start"
-        static let LLMJsonCompletion = "llm-json-completion"
+public struct LLMMessageType {
+    public struct Incoming {
+        public static let LLMFunctionCall = "llm-function-call"
+        public static let LLMFunctionCallStart = "llm-function-call-start"
+        public static let LLMJsonCompletion = "llm-json-completion"
     }
     
-    struct Outgoing {
-        static let LLMFunctionCallResult = "llm-function-call-result"
+    public struct Outgoing {
+        public static let LLMFunctionCallResult = "llm-function-call-result"
     }
 }
 
@@ -34,6 +34,12 @@ public struct LLMFunctionCallData: Codable {
         case functionName = "function_name"
         case toolCallID = "tool_call_id"
         case args
+    }
+    
+    public init(functionName: String, toolCallID: String, args: Value) {
+        self.functionName = functionName
+        self.toolCallID = toolCallID
+        self.args = args
     }
 }
 

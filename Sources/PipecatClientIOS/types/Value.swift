@@ -91,7 +91,7 @@ extension Value: ExpressibleByDictionaryLiteral {
 }
 
 extension Encodable {
-    func convertToRtviValue() async throws -> Value {
+    public func convertToRtviValue() throws -> Value {
         // Encode the current object to JSON data
         let jsonData = try JSONEncoder().encode(self)
         // Decode the JSON data into a Value object

@@ -73,7 +73,7 @@ public struct RTVIMessageInbound: Codable {
         public static let STORAGE_ITEM_STORED = "storage-item-stored"
     }
 
-    init(type: String?, data: String?) {
+    public init(type: String?, data: String?) {
         self.init(type: type, data: data, id: String(UUID().uuidString.prefix(8)), label: "rtvi-ai", metrics: nil)
     }
     
