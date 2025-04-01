@@ -1,4 +1,10 @@
-# 0.3.3 - 2025-03-20
+# 0.3.5 - 2025-04-02
+
+### Added
+
+- Triggering `onBotStartedSpeaking` and `onBotStoppedSpeaking` based on the RTVI events that we receive from Pipecat.
+
+# 0.3.4 - 2025-03-20
 
 ### Added
 
