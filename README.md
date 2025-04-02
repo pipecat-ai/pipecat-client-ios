@@ -2,11 +2,11 @@
  <img alt="pipecat" width="500px" height="auto" src="https://raw.githubusercontent.com/pipecat-ai/pipecat-client-ios/main/pipecat-ios.png">
 </div></h1>
 
-The [Pipecat](https://github.com/pipecat-ai/) project uses [RTVI-AI](https://github.com/rtvi-ai/), an open standard for Real-Time Voice [and Video] Inference.
+The [Pipecat](https://github.com/pipecat-ai/) project uses [RTVI-AI](https://docs.pipecat.ai/client/introduction), an open standard for Real-Time Voice [and Video] Inference.
 
 This iOS core library exports a VoiceClient that has no associated transport.
 
-When building an RTVI application, you should use your transport-specific export (see [here](https://rtvi.mintlify.app/api-reference/transports/introduction) for available first-party packages.) 
+When building an RTVI application, you should use your transport-specific export (see [here](https://docs.pipecat.ai/client/ios/transports/daily) for available first-party packages.) 
 The base class has no out-of-the-box bindings included.
 
 ## Install
@@ -26,10 +26,8 @@ and add `"PipecatClientIOS"` to your application/library target, `dependencies`,
 ```
 
 ## References
-- [RTVI-AI overview](https://github.com/rtvi-ai/).
-- [RTVI-AI reference docs](https://rtvi.mintlify.app/api-reference/introduction).
-- [pipecat-client-ios SDK docs](https://rtvi-client-ios-docs.vercel.app/PipecatClientIOS/documentation/pipecatclientios).
-- [pipecat-client-ios-daily SDK docs](https://rtvi-client-ios-docs.vercel.app/PipecatClientIOSDaily/documentation/pipecatclientiosdaily).
+- [pipecat-client-ios reference docs](https://docs-ios.pipecat.ai/PipecatClientIOS/documentation/pipecatclientios).
+- [pipecat-client-ios SDK docs](https://docs.pipecat.ai/client/ios/introduction).
 
 ## Contributing
 
