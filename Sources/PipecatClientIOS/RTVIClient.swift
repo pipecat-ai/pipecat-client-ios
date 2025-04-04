@@ -63,6 +63,10 @@ open class RTVIClient {
             self.delegate?.onUserStartedSpeaking()
         case RTVIMessageInbound.MessageType.USER_STOPPED_SPEAKING:
             self.delegate?.onUserStoppedSpeaking()
+        case RTVIMessageInbound.MessageType.BOT_STARTED_SPEAKING:
+            self.delegate?.onBotStartedSpeaking()
+        case RTVIMessageInbound.MessageType.BOT_STOPPED_SPEAKING:
+            self.delegate?.onBotStoppedSpeaking()
         case RTVIMessageInbound.MessageType.ACTION_RESPONSE:
             _ = self.messageDispatcher.resolve(message: voiceMessage)
         case RTVIMessageInbound.MessageType.DESCRIBE_ACTION_RESPONSE:

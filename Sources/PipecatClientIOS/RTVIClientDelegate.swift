@@ -54,10 +54,18 @@ public protocol RTVIClientDelegate: AnyObject {
     func onRemoteAudioLevel( level: Float, participant: Participant)
 
     /// Invoked when the bot starts talking.
+    @available(*, deprecated, message: "Use onBotStartedSpeaking() instead")
     func onBotStartedSpeaking( participant: Participant)
+    
+    /// Invoked when the bot starts talking.
+    func onBotStartedSpeaking()
 
     /// Invoked when the bot stops talking.
+    @available(*, deprecated, message: "Use onBotStoppedSpeaking() instead")
     func onBotStoppedSpeaking( participant: Participant)
+    
+    /// Invoked when the bot stops talking.
+    func onBotStoppedSpeaking()
 
     /// Invoked when the local user starts talking.
     func onUserStartedSpeaking()
@@ -123,8 +131,12 @@ public extension RTVIClientDelegate {
     func onMicUpdated( mic: MediaDeviceInfo?) {}
     func onUserAudioLevel( level: Float) {}
     func onRemoteAudioLevel( level: Float, participant: Participant) {}
+    @available(*, deprecated, message: "Use onBotStartedSpeaking() instead")
     func onBotStartedSpeaking( participant: Participant) {}
+    func onBotStartedSpeaking() {}
+    @available(*, deprecated, message: "Use onBotStoppedSpeaking() instead")
     func onBotStoppedSpeaking( participant: Participant) {}
+    func onBotStoppedSpeaking() {}
     func onUserStartedSpeaking() {}
     func onUserStoppedSpeaking() {}
     func onMetrics( data: PipecatMetrics) {}
