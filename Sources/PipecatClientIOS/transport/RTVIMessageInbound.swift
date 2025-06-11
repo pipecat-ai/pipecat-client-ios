@@ -71,6 +71,9 @@ public struct RTVIMessageInbound: Codable {
         
         /// Text has been stored
         public static let STORAGE_ITEM_STORED = "storage-item-stored"
+        
+        /// Server message
+        public static let SERVER_MESSAGE = "server-message"
     }
 
     public init(type: String?, data: String?) {
