@@ -54,6 +54,10 @@ open class RTVIClient {
             if let storedData = try? JSONDecoder().decode(StorageItemStoredData.self, from: Data(voiceMessage.data!.utf8)) {
                 self.delegate?.onStorageItemStored(data: storedData)
             }
+        case RTVIMessageInbound.MessageType.SERVER_MESSAGE:
+            if let storedData = try? JSONDecoder().decode(Value.self, from: Data(voiceMessage.data!.utf8)) {
+                self.delegate?.onServerMessage(data: storedData)
+            }
         case RTVIMessageInbound.MessageType.PIPECAT_METRICS:
             guard let metrics = voiceMessage.metrics else {
                 return

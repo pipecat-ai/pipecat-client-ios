@@ -1,3 +1,9 @@
+# 0.3.6 - 2025-06-11
+
+### Added
+
+- New delegate function `onServerMessage`.
+
 # 0.3.5 - 2025-04-02
 
 ### Added

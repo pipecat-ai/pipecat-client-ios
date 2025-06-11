@@ -111,6 +111,9 @@ public protocol RTVIClientDelegate: AnyObject {
     
     /// Invoked when the set of available cam/mic tracks changes.
     func onTracksUpdated(tracks: Tracks)
+    
+    /// Invoked when we receive a server message from the bot.
+    func onServerMessage(data: Value)
 }
 
 public extension RTVIClientDelegate {
@@ -152,4 +155,5 @@ public extension RTVIClientDelegate {
     func onBotTTSText(data: BotTTSText) {}
     func onBotTTSStopped() {}
     func onStorageItemStored(data: StorageItemStoredData) {}
+    func onServerMessage(data: Value) {}
 }
