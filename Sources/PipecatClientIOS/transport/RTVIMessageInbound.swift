@@ -74,6 +74,9 @@ public struct RTVIMessageInbound: Codable {
         
         /// Server message
         public static let SERVER_MESSAGE = "server-message"
+        
+        /// Bot LLM search response data
+        public static let BOT_LLM_SEARCH_RESPONSE = "bot-llm-search-response"
     }
 
     public init(type: String?, data: String?) {

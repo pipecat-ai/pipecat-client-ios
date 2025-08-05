@@ -1,2 +1,3 @@
 /.swiftpm/xcode/xcuserdata
 tmpDocs/
+.build/
