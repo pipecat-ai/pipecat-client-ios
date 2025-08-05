@@ -114,6 +114,9 @@ public protocol RTVIClientDelegate: AnyObject {
     
     /// Invoked when we receive a server message from the bot.
     func onServerMessage(data: Value)
+    
+    /// Invoked when bot LLM search response data is received.
+    func onBotLlmSearchResponse(data: BotLLMSearchResponseData)
 }
 
 public extension RTVIClientDelegate {
@@ -156,4 +159,5 @@ public extension RTVIClientDelegate {
     func onBotTTSStopped() {}
     func onStorageItemStored(data: StorageItemStoredData) {}
     func onServerMessage(data: Value) {}
+    func onBotLlmSearchResponse(data: BotLLMSearchResponseData) {}
 }

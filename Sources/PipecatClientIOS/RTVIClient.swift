@@ -58,6 +58,10 @@ open class RTVIClient {
             if let storedData = try? JSONDecoder().decode(Value.self, from: Data(voiceMessage.data!.utf8)) {
                 self.delegate?.onServerMessage(data: storedData)
             }
+        case RTVIMessageInbound.MessageType.BOT_LLM_SEARCH_RESPONSE:
+            if let searchResponseData = try? JSONDecoder().decode(BotLLMSearchResponseData.self, from: Data(voiceMessage.data!.utf8)) {
+                self.delegate?.onBotLlmSearchResponse(data: searchResponseData)
+            }
         case RTVIMessageInbound.MessageType.PIPECAT_METRICS:
             guard let metrics = voiceMessage.metrics else {
                 return
