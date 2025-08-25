@@ -3,13 +3,14 @@ import Foundation
 /// An RTVI transport.
 @MainActor
 public protocol Transport {
-    init(options: RTVIClientOptions)
-    var delegate: RTVIClientDelegate? { get set }
+    init()
+    var delegate: PipecatClientDelegate? { get set }
     var onMessage: ((RTVIMessageInbound) -> Void)? { get set }
-    
+
+    func initialize(options: PipecatClientOptions)
     func initDevices() async throws
     func release()
-    func connect(authBundle: AuthBundle?) async throws
+    func connect(transportParams: TransportConnectionParams?) async throws
     func disconnect() async throws
     func getAllMics() -> [MediaDeviceInfo]
     func getAllCams() -> [MediaDeviceInfo]
@@ -24,7 +25,5 @@ public protocol Transport {
     func sendMessage(message: RTVIMessageOutbound) throws
     func state() -> TransportState
     func setState(state: TransportState)
-    func isConnected() -> Bool
     func tracks() -> Tracks?
-    func expiry() -> Int?
 }

@@ -38,7 +38,7 @@ extension LogLevel {
 
 /// Sets the log level for logs produce by the framework.
 public func setLogLevel(_ logLevel: LogLevel) {
-    Logger.shared.level = logLevel
+    Logger.shared.setLogLevel(logLevel: logLevel)
 }
 
 internal final class Logger {
@@ -47,6 +47,10 @@ internal final class Logger {
     fileprivate let osLog: OSLog = .init(subsystem: "co.daily.rtvi", category: "main")
 
     internal static let shared: Logger = .init()
+
+    public func setLogLevel(logLevel: LogLevel) {
+        self.level = logLevel
+    }
 
     @inlinable
     internal func error(_ message: @autoclosure () -> String) {

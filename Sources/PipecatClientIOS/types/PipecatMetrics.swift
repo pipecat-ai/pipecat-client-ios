@@ -4,4 +4,5 @@ import Foundation
 public struct PipecatMetrics: Codable {
     let processing: [PipecatMetricsData]?
     let ttfb: [PipecatMetricsData]?
+    let characters: [PipecatMetricsData]?
 }

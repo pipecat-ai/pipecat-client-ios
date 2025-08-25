@@ -1,26 +1,23 @@
 import Foundation
 
 enum MessageDispatcherError: Error {
-    /// HTTP messages not supported when using certain transports that don't communicate with an RTVI server.
-    case httpMessagesNotSupported
+    case transportNotConnected
 }
 
 /// Helper class for sending messages to the server and awaiting the response.
 class MessageDispatcher {
-    
+
     private let transport: Transport
-    private let httpMessageDispatcher: HTTPMessageDispatcher?
-    
+
     /// How long to wait before resolving the message/
     private var gcTime: TimeInterval
     @MainActor
     private var queue: [QueuedVoiceMessage] = []
     private var gcTimer: Timer?
 
-    init(transport: Transport, httpMessageDispatcher: HTTPMessageDispatcher?) {
-        self.gcTime = 10.0 // 10 seconds
+    init(transport: Transport) {
+        self.gcTime = 10.0  // 10 seconds
         self.transport = transport
-        self.httpMessageDispatcher = httpMessageDispatcher
         startGCTimer()
     }
 
@@ -28,24 +25,21 @@ class MessageDispatcher {
         stopGCTimer()
     }
 
-    @MainActor 
-    func dispatch(message: RTVIMessageOutbound) throws-> Promise<RTVIMessageInbound> {
+    @MainActor
+    func dispatch(message: RTVIMessageOutbound) throws -> Promise<RTVIMessageInbound> {
+        if self.gcTimer == nil {
+            self.startGCTimer()
+        }
         let promise = Promise<RTVIMessageInbound>()
-        self.queue.append(QueuedVoiceMessage(
-            message: message,
-            timestamp: Date(),
-            promise: promise
-        ))
+        self.queue.append(
+            QueuedVoiceMessage(
+                message: message,
+                timestamp: Date(),
+                promise: promise
+            )
+        )
         do {
-            if self.transport.isConnected() {
-                try self.transport.sendMessage(message: message)
-            } else {
-                if let httpMessageDispatcher {
-                    try httpMessageDispatcher.sendMessage(message: message)
-                } else {
-                    throw MessageDispatcherError.httpMessagesNotSupported
-                }
-            }
+            try self.transport.sendMessage(message: message)
         } catch {
             Logger.shared.error("Failed to send app message \(error)")
             if let index = queue.firstIndex(where: { $0.message.id == message.id }) {
@@ -56,7 +50,7 @@ class MessageDispatcher {
         }
         return promise
     }
-    
+
     @MainActor
     func dispatchAsync(message: RTVIMessageOutbound) async throws -> RTVIMessageInbound {
         try await withCheckedThrowingContinuation { continuation in
@@ -79,12 +73,16 @@ class MessageDispatcher {
             if let index = self.queue.firstIndex(where: { $0.message.id == message.id }) {
                 let queuedMessage = self.queue[index]
                 if resolve {
-                    queuedMessage.promise.resolve(value:message)
+                    queuedMessage.promise.resolve(value: message)
                 } else {
                     if let errorResponse = try? JSONDecoder().decode(ErrorResponse.self, from: Data(message.data!.utf8)) {
-                        queuedMessage.promise.reject(error:BotResponseError(message: "Received error response from backend: \(errorResponse.error)"))
+                        queuedMessage.promise.reject(
+                            error: BotResponseError(
+                                message: "Received error response from backend: \(errorResponse.error)"
+                            )
+                        )
                     } else {
-                        queuedMessage.promise.reject(error:BotResponseError())
+                        queuedMessage.promise.reject(error: BotResponseError())
                     }
                 }
                 self.queue.remove(at: index)
@@ -93,7 +91,7 @@ class MessageDispatcher {
             }
         }
         return message
-            
+
     }
 
     func resolve(message: RTVIMessageInbound) -> RTVIMessageInbound {
@@ -103,7 +101,14 @@ class MessageDispatcher {
     func reject(message: RTVIMessageInbound) -> RTVIMessageInbound {
         return resolveReject(message: message, resolve: false)
     }
-    
+
+    func disconnect() {
+        self.stopGCTimer()
+        DispatchQueue.main.async {
+            self.queue.removeAll()
+        }
+    }
+
     /// Removing the messages that we have not received a response in the specified time
     private func gc() {
         let currentTime = Date()
@@ -111,7 +116,7 @@ class MessageDispatcher {
             self.queue.removeAll { queuedMessage in
                 let timeElapsed = currentTime.timeIntervalSince(queuedMessage.timestamp)
                 if timeElapsed >= self.gcTime {
-                    queuedMessage.promise.reject(error:ResponseTimeoutError())
+                    queuedMessage.promise.reject(error: ResponseTimeoutError())
                     return true
                 }
                 return false
