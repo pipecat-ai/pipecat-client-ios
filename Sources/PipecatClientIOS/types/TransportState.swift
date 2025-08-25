@@ -6,6 +6,7 @@ public enum TransportState {
     case initializing
     case initialized
     case authenticating
+    case authenticated
     case connecting
     case connected
     case ready
@@ -21,7 +22,9 @@ extension TransportState {
         case .initialized:
             return "Initialized"
         case .authenticating:
-            return "Handshaking"
+            return "Authenticating"
+        case .authenticated:
+            return "Authenticated"
         case .connecting:
             return "Connecting"
         case .connected:

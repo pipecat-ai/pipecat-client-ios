@@ -1,0 +1,117 @@
+# By default, SwiftLint uses a set of sensible default rules you can adjust:
+
+disabled_rules:
+  - redundant_optional_initialization # nope, consistency/explicitness > brevity!
+  - empty_enum_arguments # nope, consistency/explicitness > brevity!
+  - closure_parameter_position
+  - trailing_comma # just nope, this is a feature, not a bug!
+  - redundant_string_enum_value # nope, consistency/explicitness > brevity!
+  - unused_closure_parameter
+  - opening_brace # nope, since this prevents proper formatting of `where` constraints
+  - redundant_discardable_let
+
+opt_in_rules:
+  - closure_body_length
+  - closure_end_indentation
+  - closure_spacing
+  - collection_alignment
+  - contains_over_filter_count
+  - contains_over_filter_is_empty
+  - contains_over_first_not_nil
+  - contains_over_range_nil_comparison
+  - convenience_type
+  - discouraged_object_literal
+  - discouraged_optional_collection
+  - empty_count
+  - empty_string
+  - fallthrough
+  - file_name_no_space
+  - first_where
+  - flatmap_over_map_reduce
+  - force_unwrapping
+  - function_default_parameter_at_end
+  - implicit_return
+  - implicitly_unwrapped_optional
+  - indentation_width
+  - joined_default_parameter
+  - last_where
+  - legacy_multiple
+  - legacy_random
+  - literal_expression_end_indentation
+  - multiline_function_chains
+  - no_extension_access_modifier
+  - operator_usage_whitespace
+  - private_action
+  - private_outlet
+  - redundant_set_access_control
+  - sorted_first_last
+  - switch_case_on_newline
+  - unneeded_parentheses_in_closure_argument
+  - unowned_variable_capture
+  - vertical_whitespace_opening_braces
+
+# Rules run by `swiftlint analyze` (experimental)
+analyzer_rules:
+  - explicit_self
+  - unused_import
+
+excluded:
+  - Daily/DailyTests
+  - Daily/DailyDataModelTests
+
+force_cast: warning # implicitly
+force_try:
+  severity: warning # explicitly
+
+line_length:
+  warning: 120
+  error: 150
+
+type_body_length:
+  - 300 # warning
+  - 400 # error
+
+file_length:
+  warning: 750
+  error: 1000
+
+type_name:
+  min_length: 4 # only warning
+  max_length: # warning and error
+    warning: 50
+    error: 70
+  excluded:
+    - Key
+    - ID
+  allowed_symbols: ["_"] # these are allowed in type names
+
+identifier_name:
+  min_length: # only min_length
+    warning: 2 # only warn
+  excluded: # excluded via string array
+    - i
+    - x
+    - y
+    - id
+
+indentation_width:
+  indentation_width: 4
+
+custom_rules:
+  # https://www.swift.org/documentation/api-design-guidelines/#follow-case-conventions
+  uniform_casing_for_id:
+    name: "Use id or ID instead of Id"
+    regex: '(?<!")(\w*[a-z])?Id(?!entifier)([A-Z]?[a-z]+)?(?!")'
+    message: "Acronyms and initialisms that commonly appear as all upper case in American English should be uniformly up- or down-cased."
+  uniform_casing_for_url:
+    name: "Use url or URL instead of Url"
+    regex: '(?<!")(\w*[a-z])?Url([A-Z]?[a-z]+)?(?!")'
+    message: "Acronyms and initialisms that commonly appear as all upper case in American English should be uniformly up- or down-cased."
+  uniform_casing_for_kvo:
+    name: "Use kvo or KVO instead of Kvo"
+    regex: '(?<!")(\w*[a-z])?Kvo([A-Z]?[a-z]+)?(?!")'
+    message: "Acronyms and initialisms that commonly appear as all upper case in American English should be uniformly up- or down-cased."
+  uniform_casing_for_rtmp:
+    name: "Use rtmp or RTMP instead of Rtmp"
+    regex: '(?<!")(\w*[a-z])?Rtmp([A-Z]?[a-z]+)?(?!")'
+    message: "Acronyms and initialisms that commonly appear as all upper case in American English should be uniformly up- or down-cased."

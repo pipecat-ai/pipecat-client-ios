@@ -5,13 +5,13 @@ public enum Value: Codable, Equatable {
     struct ValueDecodingError: Error {
         let message: String
     }
-    
+
     case boolean(Bool)
     case number(Double)
     case string(String)
     case array([Value?])
     case object([String: Value?])
-    
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         if let boolean = try? container.decode(Bool.self) {
@@ -28,7 +28,7 @@ public enum Value: Codable, Equatable {
             throw ValueDecodingError(message: "could not decode a valid Value")
         }
     }
-    
+
     public func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
         switch self {
@@ -44,7 +44,7 @@ public enum Value: Codable, Equatable {
             try container.encode(valueDictionary)
         }
     }
-    
+
     public mutating func addProperty(key: String, value: Value?) throws {
         guard case .object(var dictionary) = self else {
             throw ValueDecodingError(message: "Cannot add properties to non-object Value")
@@ -97,5 +97,33 @@ extension Encodable {
         // Decode the JSON data into a Value object
         let value = try JSONDecoder().decode(Value.self, from: jsonData)
         return value
+    }
+    var asString: String {
+        do {
+            let jsonData = try JSONEncoder().encode(self)
+            return String(data: jsonData, encoding: .utf8)!
+        } catch {}
+        return ""
+    }
+}
+
+public extension Value {
+    public var asObject: [String: Value] {
+        if case .object(let dict) = self {
+            return dict
+        }
+        return [:]
+    }
+
+    public var asString: String {
+        if case .object = self {
+            do {
+                let jsonData = try JSONEncoder().encode(self)
+                return String(data: jsonData, encoding: .utf8)!
+            } catch {}
+        } else if case .string(let stringValue) = self {
+            return stringValue
+        }
+        return ""
     }
 }

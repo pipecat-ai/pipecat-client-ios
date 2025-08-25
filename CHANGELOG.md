@@ -1,3 +1,43 @@
+# 1.0.0 - Unreleased
+
+### Changed
+- Protocol Updates:
+  - `client-ready` and `bot-ready` messages now include:
+    - `version`: Specifies the RTVI protocol version.
+    `about`: Provides metadata about the client platform and environment.
+  - Deprecated and removed:
+    - Action-related messages and methods (e.g., `action()`, `describeActions()`).
+    - Service configuration messages and related methods (e.g., `getConfig()`, `updateConfig()`).
+    - Helper-related utilities (e.g., `RTVIClientHelper`, `LLMHelper`).
+  - Introduced new messaging types:
+    - `client-message`: For sending messages from client to server.
+    - `append-to-context`: To append data to the LLM context.
+    - `disconnect-bot`: For disconnecting the bot
+    - `server-response`: For receiving responses from the server.
+    - `bot-llm-search-response`: For receiving the llm search response.
+
+- PipecatClient Enhancements:
+  - Constructor no longer accepts `params` for pipeline or endpoint configuration.
+  - `connect()` method now accepts a set of parameters defined by the transport in use.
+
+### Removed
+- All action-related methods, events and types:
+  - `action()`, `describeActions()`, `onActionsAvailable`, etc.
+- All configuration-related methods, events and types:
+  - `getConfig()`, `updateConfig()`, `describeConfig()`, `onConfigUpdated`, `onConfigDescribed`, etc.
+- All helper-related methods, types, and files:
+  - `RTVIClientHelper`, `registerHelper`, `LLMHelper`, etc.
+- `transportExpiry()` method.
+
+### Added
+- `appendToContext()`: Ability to append data to the LLM context.
+- `sendClientRequest()`: Send a message and wait for a response.
+- `sendClientMessage()`: Sends a one-way message to the bot without expecting a response.
+- `disconnectBot()`: Sends a disconnect signal to the bot while maintaining the transport connection.
+- `registerFunctionCallHandler`: Registers a function call handler for a specific function name.
+- `unregisterFunctionCallHandler`: Unregisters a function call handler for a specific function name.
+- `unregisterAllFunctionCallHandlers`: Unregisters all function call handlers.
+
 # 0.3.6 - 2025-06-11
 
 ### Added
