@@ -113,7 +113,7 @@ public struct RTVIMessageInbound: Codable {
     public static func errorMessage(error: String, fatal: Bool = false) -> RTVIMessageInbound {
         return RTVIMessageInbound(
             type: RTVIMessageInbound.MessageType.ERROR,
-            data: BotError(error: error, fatal: fatal).asString,
+            data: BotError(error: error, fatal: fatal).asString
         )
     }
 }

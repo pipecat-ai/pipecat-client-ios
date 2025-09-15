@@ -786,7 +786,7 @@ open class PipecatClient {
     public func sendClientRequest(msgType: String, data: Value? = nil) async throws -> ClientMessageData {
         try self.assertReady()
         return try await self.dispatchMessage(
-            message: .clientMessage(msgType: msgType, data: data),
+            message: .clientMessage(msgType: msgType, data: data)
         )
     }
 
