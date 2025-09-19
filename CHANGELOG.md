@@ -1,3 +1,8 @@
+# 1.0.1 - 2025-09-19
+
+### Added
+- Added support for lower versions of Xcode (16.2 and below)
+
 # 1.0.0 - 2025-08-25
 
 ### Changed
