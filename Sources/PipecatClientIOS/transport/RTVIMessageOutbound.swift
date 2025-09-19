@@ -37,7 +37,7 @@ public struct RTVIMessageOutbound: Encodable {
             "version": .string(RTVI_PROTOCOL_VERSION),
             "about": .object([
                 "library": .string(PipecatClient.library),
-                "library_version": .string(PipecatClient.libraryVersion),
+                "library_version": .string(PipecatClient.libraryVersion)
             ]),
         ])
         return RTVIMessageOutbound(
@@ -48,7 +48,7 @@ public struct RTVIMessageOutbound: Encodable {
 
     public static func disconnectBot() -> RTVIMessageOutbound {
         return RTVIMessageOutbound(
-            type: RTVIMessageOutbound.MessageType.DISCONNECT_BOT,
+            type: RTVIMessageOutbound.MessageType.DISCONNECT_BOT
         )
     }
 
