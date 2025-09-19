@@ -14,7 +14,7 @@ The base class has no out-of-the-box bindings included.
 To depend on the client package, you can add this package via Xcode's package manager using the URL of this git repository directly, or you can declare your dependency in your `Package.swift`:
 
 ```swift
-.package(url: "https://github.com/pipecat-ai/pipecat-client-ios.git", from: "1.0.0"),
+.package(url: "https://github.com/pipecat-ai/pipecat-client-ios.git", from: "1.0.1"),
 ```
 
 and add `"PipecatClientIOS"` to your application/library target, `dependencies`, e.g. like this:
