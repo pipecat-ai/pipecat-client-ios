@@ -16,7 +16,7 @@ public protocol PipecatClientDelegate: AnyObject {
 
     /// Invoked when the bot has connected to the session.
     func onBotConnected(participant: Participant)
-    
+
     /// Invoked when the bot process has started.
     func onBotStarted(botResponse: Any)
 

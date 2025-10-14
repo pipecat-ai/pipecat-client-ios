@@ -38,7 +38,7 @@ public struct RTVIMessageOutbound: Encodable {
             "about": .object([
                 "library": .string(PipecatClient.library),
                 "library_version": .string(PipecatClient.libraryVersion)
-            ]),
+            ])
         ])
         return RTVIMessageOutbound(
             type: RTVIMessageOutbound.MessageType.CLIENT_READY,

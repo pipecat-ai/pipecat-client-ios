@@ -61,8 +61,7 @@ open class PipecatClient {
             }
         case RTVIMessageInbound.MessageType.METRICS:
             if let metricsData = try? JSONDecoder()
-                .decode(PipecatMetrics.self, from: Data(voiceMessage.data!.utf8))
-            {
+                .decode(PipecatMetrics.self, from: Data(voiceMessage.data!.utf8)) {
                 self.delegate?.onMetrics(data: metricsData)
             }
         case RTVIMessageInbound.MessageType.USER_STARTED_SPEAKING:
@@ -91,8 +90,7 @@ open class PipecatClient {
             }
         case RTVIMessageInbound.MessageType.LLM_FUNCTION_CALL:
             if let functionCallData = try? JSONDecoder()
-                .decode(LLMFunctionCallData.self, from: Data(voiceMessage.data!.utf8))
-            {
+                .decode(LLMFunctionCallData.self, from: Data(voiceMessage.data!.utf8)) {
                 Task {
                     // Check if we have a registered handler for this function
                     if let registeredCallback = self.functionCallCallbacks[functionCallData.functionName] {
@@ -140,8 +138,7 @@ open class PipecatClient {
 
         case RTVIMessageInbound.MessageType.BOT_LLM_SEARCH_RESPONSE:
             if let searchResponseData = try? JSONDecoder()
-                .decode(BotLLMSearchResponseData.self, from: Data(voiceMessage.data!.utf8))
-            {
+                .decode(BotLLMSearchResponseData.self, from: Data(voiceMessage.data!.utf8)) {
                 self.delegate?.onBotLlmSearchResponse(data: searchResponseData)
             }
         default:
@@ -298,8 +295,7 @@ open class PipecatClient {
     /// - Note: The client must be in a disconnected state to call this method.
     public func startBot<T: Decodable>(startBotParams: APIRequest) async throws -> T {
         if self.transport.state() == .authenticating || self.transport.state() == .connecting
-            || self.transport.state() == .connected || self.transport.state() == .ready
-        {
+            || self.transport.state() == .connected || self.transport.state() == .ready {
             throw BotAlreadyStartedError()
         }
         do {
@@ -350,8 +346,7 @@ open class PipecatClient {
     /// - Note: Devices will be automatically initialized if not already done.
     public func connect(transportParams: TransportConnectionParams) async throws {
         if self.transport.state() == .authenticating || self.transport.state() == .connecting
-            || self.transport.state() == .connected || self.transport.state() == .ready
-        {
+            || self.transport.state() == .connected || self.transport.state() == .ready {
             throw BotAlreadyStartedError()
         }
         do {
