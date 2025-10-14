@@ -1,6 +1,14 @@
-# 1.1.0 - Unreleased
+# 1.1.0 — Unreleased
 
+### Added
 
+- Added new `sendText()` method to support the new RTVI `send-text` event. 
+  - Note: This is a replacement for the current `appendToContext()` method and changes the default of `run_immediately` to `True`.
+- New delegate function `onBotStarted`.
+
+### Deprecated
+
+- Deprecated `appendToContext()` in lieu of the new `sendText()` method. This sets a standard for future methods like `sendImage()`.
 
 # 1.0.1 - 2025-09-19
 

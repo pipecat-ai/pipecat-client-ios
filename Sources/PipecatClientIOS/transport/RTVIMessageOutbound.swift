@@ -17,6 +17,7 @@ public struct RTVIMessageOutbound: Encodable {
         public static let DISCONNECT_BOT = "disconnect-bot"
         public static let CLIENT_MESSAGE = "client-message"
         public static let APPEND_TO_CONTEXT = "append-to-context"
+        public static let SEND_TEXT = "send-text"
         public static let LLM_FUNCTION_CALL_RESULT = "llm-function-call-result"
     }
 
@@ -64,6 +65,16 @@ public struct RTVIMessageOutbound: Encodable {
         return RTVIMessageOutbound(
             type: RTVIMessageOutbound.MessageType.APPEND_TO_CONTEXT,
             data: try msg.convertToRtviValue()
+        )
+    }
+
+    public static func sendText(content: String, options: SendTextOptions? = nil) throws -> RTVIMessageOutbound {
+        return RTVIMessageOutbound(
+            type: RTVIMessageOutbound.MessageType.SEND_TEXT,
+            data: .object([
+                "content": .string(content),
+                "options": try options?.self.convertToRtviValue()
+            ])
         )
     }
 

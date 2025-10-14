@@ -828,6 +828,7 @@ open class PipecatClient {
     ///
     /// - Important: The bot must be in a `.ready` state for this method to succeed.
     /// - Note: Context messages persist only for the current session and are cleared when disconnecting.
+    @available(*, deprecated, message: "Use sendText() instead. This method will be removed in a future version.")
     public func appendToContext(message: LLMContextMessage) async throws -> AppendToContextResultData {
         try self.assertReady()
         let result: AppendToContextResultData = try await self.dispatchMessage(message: .appendToContext(msg: message))
@@ -852,7 +853,7 @@ open class PipecatClient {
     ///
     /// - Important: The bot must be in a `.ready` state for this method to succeed.
     /// - Note: Context messages persist only for the current session and are cleared when disconnecting.
-
+    @available(*, deprecated, message: "Use sendText() instead. This method will be removed in a future version.")
     public func appendToContext(
         message: LLMContextMessage,
         completion: ((Result<AppendToContextResultData, AsyncExecutionError>) -> Void)?
@@ -865,6 +866,27 @@ open class PipecatClient {
                 completion?(.failure(AsyncExecutionError(functionName: "appendToContext", underlyingError: error)))
             }
         }
+    }
+
+    /// Sends a text message to the bot for processing.
+    ///
+    /// This method sends a text message directly to the bot, which will be processed by the
+    /// Large Language Model and may generate a spoken response. Unlike `appendToContext()`,
+    /// this method defaults to `run_immediately = true`, meaning the bot will process and
+    /// respond to the message immediately.
+    ///
+    /// - Parameters:
+    ///   - content: The text content to send to the bot for processing.
+    ///   - options: Optional `SendTextOptions` to customize the message behavior.
+    /// - Throws:
+    ///   - `BotNotReadyError` if the bot is not in a ready state to accept messages
+    ///   - Communication errors if the message fails to send
+    ///
+    /// - Important: The bot must be in a `.ready` state for this method to succeed.
+    /// - Note: This is the preferred method for sending text messages to the bot.
+    public func sendText(content: String, options: SendTextOptions? = nil) throws {
+        try self.assertReady()
+        try self.sendMessage(msg: .sendText(content: content, options: options))
     }
 
     /// Sends a disconnect signal to the bot while maintaining the transport connection.
