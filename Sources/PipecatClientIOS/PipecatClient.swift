@@ -61,8 +61,7 @@ open class PipecatClient {
             }
         case RTVIMessageInbound.MessageType.METRICS:
             if let metricsData = try? JSONDecoder()
-                .decode(PipecatMetrics.self, from: Data(voiceMessage.data!.utf8))
-            {
+                .decode(PipecatMetrics.self, from: Data(voiceMessage.data!.utf8)) {
                 self.delegate?.onMetrics(data: metricsData)
             }
         case RTVIMessageInbound.MessageType.USER_STARTED_SPEAKING:
@@ -91,8 +90,7 @@ open class PipecatClient {
             }
         case RTVIMessageInbound.MessageType.LLM_FUNCTION_CALL:
             if let functionCallData = try? JSONDecoder()
-                .decode(LLMFunctionCallData.self, from: Data(voiceMessage.data!.utf8))
-            {
+                .decode(LLMFunctionCallData.self, from: Data(voiceMessage.data!.utf8)) {
                 Task {
                     // Check if we have a registered handler for this function
                     if let registeredCallback = self.functionCallCallbacks[functionCallData.functionName] {
@@ -140,8 +138,7 @@ open class PipecatClient {
 
         case RTVIMessageInbound.MessageType.BOT_LLM_SEARCH_RESPONSE:
             if let searchResponseData = try? JSONDecoder()
-                .decode(BotLLMSearchResponseData.self, from: Data(voiceMessage.data!.utf8))
-            {
+                .decode(BotLLMSearchResponseData.self, from: Data(voiceMessage.data!.utf8)) {
                 self.delegate?.onBotLlmSearchResponse(data: searchResponseData)
             }
         default:
@@ -298,8 +295,7 @@ open class PipecatClient {
     /// - Note: The client must be in a disconnected state to call this method.
     public func startBot<T: Decodable>(startBotParams: APIRequest) async throws -> T {
         if self.transport.state() == .authenticating || self.transport.state() == .connecting
-            || self.transport.state() == .connected || self.transport.state() == .ready
-        {
+            || self.transport.state() == .connected || self.transport.state() == .ready {
             throw BotAlreadyStartedError()
         }
         do {
@@ -307,6 +303,7 @@ open class PipecatClient {
             // Send POST request to start the bot
             let transportParams: T = try await fetchStartBot(startBotParams: startBotParams)
             self.transport.setState(state: .authenticated)
+            self.delegate?.onBotStarted(botResponse: transportParams)
             return transportParams
         } catch {
             self.disconnect(completion: nil)
@@ -349,8 +346,7 @@ open class PipecatClient {
     /// - Note: Devices will be automatically initialized if not already done.
     public func connect(transportParams: TransportConnectionParams) async throws {
         if self.transport.state() == .authenticating || self.transport.state() == .connecting
-            || self.transport.state() == .connected || self.transport.state() == .ready
-        {
+            || self.transport.state() == .connected || self.transport.state() == .ready {
             throw BotAlreadyStartedError()
         }
         do {
@@ -824,18 +820,16 @@ open class PipecatClient {
     ///
     /// - Parameter message: An `LLMContextMessage` containing the role (user, assistant),
     ///   content to add to the conversation context and a flag for whether the bot should respond immediately.
-    /// - Returns: A `AppendToContextResultData` object containing the bot's acknowledgment response. The exact structure
-    ///   depends on the bot implementation but typically includes confirmation of the context update.
     /// - Throws:
     ///   - `BotNotReadyError` if the bot is not in a ready state to accept context updates
     ///   - Communication errors if the message fails to send or receive a response
     ///
     /// - Important: The bot must be in a `.ready` state for this method to succeed.
     /// - Note: Context messages persist only for the current session and are cleared when disconnecting.
-    public func appendToContext(message: LLMContextMessage) async throws -> AppendToContextResultData {
+    @available(*, deprecated, message: "Use sendText() instead. This method will be removed in a future version.")
+    public func appendToContext(message: LLMContextMessage) async throws -> Void {
         try self.assertReady()
-        let result: AppendToContextResultData = try await self.dispatchMessage(message: .appendToContext(msg: message))
-        return result
+        try self.sendMessage(msg: .appendToContext(msg: message))
     }
 
     /// Appends a message to the bot's LLM conversation context (completion-based).
@@ -856,19 +850,40 @@ open class PipecatClient {
     ///
     /// - Important: The bot must be in a `.ready` state for this method to succeed.
     /// - Note: Context messages persist only for the current session and are cleared when disconnecting.
-
+    @available(*, deprecated, message: "Use sendText() instead. This method will be removed in a future version.")
     public func appendToContext(
         message: LLMContextMessage,
-        completion: ((Result<AppendToContextResultData, AsyncExecutionError>) -> Void)?
+        completion: ((Result<Void, AsyncExecutionError>) -> Void)?
     ) {
         Task {
             do {
-                let response = try await self.appendToContext(message: message)
-                completion?(.success((response)))
+                try await self.appendToContext(message: message)
+                completion?(.success(()))
             } catch {
                 completion?(.failure(AsyncExecutionError(functionName: "appendToContext", underlyingError: error)))
             }
         }
+    }
+
+    /// Sends a text message to the bot for processing.
+    ///
+    /// This method sends a text message directly to the bot, which will be processed by the
+    /// Large Language Model and may generate a spoken response. Unlike `appendToContext()`,
+    /// this method defaults to `run_immediately = true`, meaning the bot will process and
+    /// respond to the message immediately.
+    ///
+    /// - Parameters:
+    ///   - content: The text content to send to the bot for processing.
+    ///   - options: Optional `SendTextOptions` to customize the message behavior.
+    /// - Throws:
+    ///   - `BotNotReadyError` if the bot is not in a ready state to accept messages
+    ///   - Communication errors if the message fails to send
+    ///
+    /// - Important: The bot must be in a `.ready` state for this method to succeed.
+    /// - Note: This is the preferred method for sending text messages to the bot.
+    public func sendText(content: String, options: SendTextOptions? = nil) throws {
+        try self.assertReady()
+        try self.sendMessage(msg: .sendText(content: content, options: options))
     }
 
     /// Sends a disconnect signal to the bot while maintaining the transport connection.

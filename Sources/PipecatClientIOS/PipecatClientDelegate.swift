@@ -17,6 +17,9 @@ public protocol PipecatClientDelegate: AnyObject {
     /// Invoked when the bot has connected to the session.
     func onBotConnected(participant: Participant)
 
+    /// Invoked when the bot process has started.
+    func onBotStarted(botResponse: Any)
+
     /// Invoked when the bot has indicated it is ready for commands.
     func onBotReady(botReadyData: BotReadyData)
 
@@ -127,6 +130,7 @@ extension PipecatClientDelegate {
     public func onTransportStateChanged(state: TransportState) {}
     public func onBotConnected(participant: Participant) {}
     public func onBotReady(botReadyData: BotReadyData) {}
+    public func onBotStarted(botResponse: Any) {}
     public func onBotDisconnected(participant: Participant) {}
     public func onMetrics(data: PipecatMetrics) {}
     public func onServerMessage(data: Any) {}

@@ -1,3 +1,15 @@
+# 1.1.0 — 2025-10-14
+
+### Added
+
+- Added new `sendText()` method to support the new RTVI `send-text` event. 
+  - Note: This is a replacement for the current `appendToContext()` method and changes the default of `run_immediately` to `True`.
+- New delegate function `onBotStarted`.
+
+### Deprecated
+
+- Deprecated `appendToContext()` in lieu of the new `sendText()` method. This sets a standard for future methods like `sendImage()`.
+
 # 1.0.1 - 2025-09-19
 
 ### Added
@@ -42,6 +54,8 @@
 - `registerFunctionCallHandler`: Registers a function call handler for a specific function name.
 - `unregisterFunctionCallHandler`: Unregisters a function call handler for a specific function name.
 - `unregisterAllFunctionCallHandlers`: Unregisters all function call handlers.
+- `startBot()`: Fetches the POST endpoint for kicking off a bot process and optionally returning the connection parameters required by the transport.
+- `startBotAndConnect()`: Calls both `startBot()` and `connect()`, passing any data returned from the `startBot()` endpoint to `connect()` as transport parameters.
 
 # 0.3.6 - 2025-06-11
 
