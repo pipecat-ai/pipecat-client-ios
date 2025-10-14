@@ -820,8 +820,6 @@ open class PipecatClient {
     ///
     /// - Parameter message: An `LLMContextMessage` containing the role (user, assistant),
     ///   content to add to the conversation context and a flag for whether the bot should respond immediately.
-    /// - Returns: A `AppendToContextResultData` object containing the bot's acknowledgment response. The exact structure
-    ///   depends on the bot implementation but typically includes confirmation of the context update.
     /// - Throws:
     ///   - `BotNotReadyError` if the bot is not in a ready state to accept context updates
     ///   - Communication errors if the message fails to send or receive a response
@@ -829,10 +827,9 @@ open class PipecatClient {
     /// - Important: The bot must be in a `.ready` state for this method to succeed.
     /// - Note: Context messages persist only for the current session and are cleared when disconnecting.
     @available(*, deprecated, message: "Use sendText() instead. This method will be removed in a future version.")
-    public func appendToContext(message: LLMContextMessage) async throws -> AppendToContextResultData {
+    public func appendToContext(message: LLMContextMessage) async throws -> Void {
         try self.assertReady()
-        let result: AppendToContextResultData = try await self.dispatchMessage(message: .appendToContext(msg: message))
-        return result
+        try self.sendMessage(msg: .appendToContext(msg: message))
     }
 
     /// Appends a message to the bot's LLM conversation context (completion-based).
@@ -856,12 +853,12 @@ open class PipecatClient {
     @available(*, deprecated, message: "Use sendText() instead. This method will be removed in a future version.")
     public func appendToContext(
         message: LLMContextMessage,
-        completion: ((Result<AppendToContextResultData, AsyncExecutionError>) -> Void)?
+        completion: ((Result<Void, AsyncExecutionError>) -> Void)?
     ) {
         Task {
             do {
-                let response = try await self.appendToContext(message: message)
-                completion?(.success((response)))
+                try await self.appendToContext(message: message)
+                completion?(.success(()))
             } catch {
                 completion?(.failure(AsyncExecutionError(functionName: "appendToContext", underlyingError: error)))
             }
