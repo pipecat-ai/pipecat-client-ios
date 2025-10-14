@@ -307,6 +307,7 @@ open class PipecatClient {
             // Send POST request to start the bot
             let transportParams: T = try await fetchStartBot(startBotParams: startBotParams)
             self.transport.setState(state: .authenticated)
+            self.delegate?.onBotStarted(botResponse: transportParams)
             return transportParams
         } catch {
             self.disconnect(completion: nil)
