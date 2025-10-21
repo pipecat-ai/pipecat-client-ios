@@ -1,3 +1,9 @@
+# 1.1.0 — Unreleased
+
+### Added
+
+- Allowing the transports to transform `StartBotResult` into `TransportConnectionParams` when using startBotAndConnect.
+
 # 1.1.0 — 2025-10-14
 
 ### Added

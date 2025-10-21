@@ -300,11 +300,12 @@ open class PipecatClient {
         }
         do {
             self.transport.setState(state: .authenticating)
+
             // Send POST request to start the bot
-            let transportParams: T = try await fetchStartBot(startBotParams: startBotParams)
+            let startBotResult: T = try await fetchStartBot(startBotParams: startBotParams)
             self.transport.setState(state: .authenticated)
-            self.delegate?.onBotStarted(botResponse: transportParams)
-            return transportParams
+            self.delegate?.onBotStarted(botResponse: startBotResult)
+            return startBotResult
         } catch {
             self.disconnect(completion: nil)
             self.transport.setState(state: .disconnected)
@@ -328,8 +329,8 @@ open class PipecatClient {
     ) {
         Task {
             do {
-                let transportParams: T = try await self.startBot(startBotParams: startBotParams)
-                completion?(.success((transportParams)))
+                let startBotResult: T = try await self.startBot(startBotParams: startBotParams)
+                completion?(.success((startBotResult)))
             } catch {
                 completion?(.failure(AsyncExecutionError(functionName: "start", underlyingError: error)))
             }
@@ -390,7 +391,7 @@ open class PipecatClient {
                 try await self.connect(transportParams: transportParams)
                 completion?(.success(()))
             } catch {
-                completion?(.failure(AsyncExecutionError(functionName: "start", underlyingError: error)))
+                completion?(.failure(AsyncExecutionError(functionName: "connect", underlyingError: error)))
             }
         }
     }
@@ -403,10 +404,14 @@ open class PipecatClient {
     /// - Parameter startBotParams: API request configuration for bot authentication.
     /// - Returns: The transport connection parameters used for the connection.
     /// - Throws: Various errors related to authentication or connection failures.
-    public func startBotAndConnect<T: TransportConnectionParams>(startBotParams: APIRequest) async throws -> T {
-        let transportParams: T = await try self.startBot(startBotParams: startBotParams)
+    public func startBotAndConnect<T: StartBotResult>(startBotParams: APIRequest) async throws -> T {
+        let startBotResult: T = await try self.startBot(startBotParams: startBotParams)
+        let transportParams = try self.transport.transformStartBotResultToConnectionParams(
+            startBotParams: startBotParams,
+            startBotResult: startBotResult
+        )
         await try self.connect(transportParams: transportParams)
-        return transportParams
+        return startBotResult
     }
 
     /// Performs bot start request and connection in a single operation (completion-based).
@@ -417,7 +422,7 @@ open class PipecatClient {
     /// - Parameters:
     ///   - startBotParams: API request configuration for bot authentication.
     ///   - completion: A closure called when the operation completes with the result.
-    public func startBotAndConnect<T: TransportConnectionParams>(
+    public func startBotAndConnect<T: StartBotResult>(
         startBotParams: APIRequest,
         completion: ((Result<T, AsyncExecutionError>) -> Void)?
     ) {
@@ -827,7 +832,7 @@ open class PipecatClient {
     /// - Important: The bot must be in a `.ready` state for this method to succeed.
     /// - Note: Context messages persist only for the current session and are cleared when disconnecting.
     @available(*, deprecated, message: "Use sendText() instead. This method will be removed in a future version.")
-    public func appendToContext(message: LLMContextMessage) async throws -> Void {
+    public func appendToContext(message: LLMContextMessage) async throws {
         try self.assertReady()
         try self.sendMessage(msg: .appendToContext(msg: message))
     }
