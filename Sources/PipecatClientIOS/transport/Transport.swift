@@ -26,4 +26,6 @@ public protocol Transport {
     func state() -> TransportState
     func setState(state: TransportState)
     func tracks() -> Tracks?
+    func transformStartBotResultToConnectionParams(startBotParams: APIRequest, startBotResult: StartBotResult) throws
+        -> TransportConnectionParams
 }
