@@ -29,3 +29,14 @@ public protocol Transport {
     func transformStartBotResultToConnectionParams(startBotParams: APIRequest, startBotResult: StartBotResult) throws
         -> TransportConnectionParams
 }
+
+extension Transport {
+    public func transformStartBotResultToConnectionParams(startBotParams: APIRequest, startBotResult: StartBotResult)
+        throws
+        -> TransportConnectionParams {
+        if let existingParams = startBotResult as? TransportConnectionParams {
+            return existingParams
+        }
+        throw InvalidTransportParamsError()
+    }
+}

@@ -1,3 +1,9 @@
+# 1.1.2 — Unreleased
+
+### Added
+
+- Added default implementations for all optional `Transport` protocol methods to ensure backward compatibility.
+
 # 1.1.1 — 2025-10-23
 
 ### Added
