@@ -1,3 +1,9 @@
+# 1.1.3 — Unreleased
+
+### Fixed
+
+- Fixed memory management in message handling to ensure proper deallocation of `PipecatClient` instances.
+
 # 1.1.2 — 2025-10-28
 
 ### Added
