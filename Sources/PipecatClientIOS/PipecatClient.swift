@@ -18,7 +18,8 @@ open class PipecatClient {
 
     private var functionCallCallbacks: [String: FunctionCallCallback] = [:]
 
-    private lazy var onMessage: (RTVIMessageInbound) -> Void = { (voiceMessage: RTVIMessageInbound) in
+    private lazy var onMessage: (RTVIMessageInbound) -> Void = { [weak self] (voiceMessage: RTVIMessageInbound) in
+        guard let self else { return }
         guard let type = voiceMessage.type else {
             // Ignoring the message, it doesn't have a type
             return
