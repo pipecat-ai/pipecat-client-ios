@@ -95,6 +95,7 @@ public protocol PipecatClientDelegate: AnyObject {
     /// Invoked when user transcript data is available.
     func onUserTranscript(data: Transcript)
 
+    @available(*, deprecated, message: "Use onBotOutput() instead. This method will be removed in a future version.")
     /// Invoked when bot transcript data is available.
     func onBotTranscript(data: BotLLMText)
 
@@ -121,6 +122,9 @@ public protocol PipecatClientDelegate: AnyObject {
 
     /// Invoked when the LLM attempts to invoke a function. The provided callback must be provided with a return value.
     func onLLMFunctionCall(functionCallData: LLMFunctionCallData, onResult: ((Value) async -> Void)) async
+
+    /// Invoked when the bot has a new output data
+    func onBotOutput(data: BotOutputData)
 }
 
 extension PipecatClientDelegate {
@@ -155,6 +159,7 @@ extension PipecatClientDelegate {
     public func onUserStartedSpeaking() {}
     public func onUserStoppedSpeaking() {}
     public func onUserTranscript(data: Transcript) {}
+    @available(*, deprecated, message: "Use onBotOutput() instead. This method will be removed in a future version.")
     public func onBotTranscript(data: BotLLMText) {}
     public func onBotLlmText(data: BotLLMText) {}
     public func onBotLlmStarted() {}
@@ -164,4 +169,5 @@ extension PipecatClientDelegate {
     public func onBotTtsStopped() {}
     public func onBotLlmSearchResponse(data: BotLLMSearchResponseData) {}
     public func onLLMFunctionCall(functionCallData: LLMFunctionCallData, onResult: ((Value) async -> Void)) async {}
+    public func onBotOutput(data: BotOutputData) {}
 }

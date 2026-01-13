@@ -73,6 +73,10 @@ open class PipecatClient {
             self.delegate?.onBotStartedSpeaking()
         case RTVIMessageInbound.MessageType.BOT_STOPPED_SPEAKING:
             self.delegate?.onBotStoppedSpeaking()
+        case RTVIMessageInbound.MessageType.BOT_OUTPUT:
+            if let botOutputData = try? JSONDecoder().decode(BotOutputData.self, from: Data(voiceMessage.data!.utf8)) {
+                self.delegate?.onBotOutput(data: botOutputData)
+            }
         case RTVIMessageInbound.MessageType.SERVER_RESPONSE:
             _ = self.messageDispatcher.resolve(message: voiceMessage)
         case RTVIMessageInbound.MessageType.ERROR_RESPONSE:
