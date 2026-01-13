@@ -95,6 +95,7 @@ public protocol PipecatClientDelegate: AnyObject {
     /// Invoked when user transcript data is available.
     func onUserTranscript(data: Transcript)
 
+    @available(*, deprecated, message: "Use onBotOutput() instead. This method will be removed in a future version.")
     /// Invoked when bot transcript data is available.
     func onBotTranscript(data: BotLLMText)
 
@@ -158,6 +159,7 @@ extension PipecatClientDelegate {
     public func onUserStartedSpeaking() {}
     public func onUserStoppedSpeaking() {}
     public func onUserTranscript(data: Transcript) {}
+    @available(*, deprecated, message: "Use onBotOutput() instead. This method will be removed in a future version.")
     public func onBotTranscript(data: BotLLMText) {}
     public func onBotLlmText(data: BotLLMText) {}
     public func onBotLlmStarted() {}
