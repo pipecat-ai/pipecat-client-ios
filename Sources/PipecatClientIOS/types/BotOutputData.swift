@@ -6,7 +6,7 @@ public struct BotOutputData: Codable {
         case sentence
     }
 
-    public let aggregatedBy: AggregationType?
+    public let aggregatedBy: AggregationType
     public let text: String
     public let spoken: Bool
 
@@ -16,7 +16,7 @@ public struct BotOutputData: Codable {
         case aggregatedBy = "aggregated_by"
     }
 
-    public init(text: String, spoken: Bool, aggregatedBy: AggregationType? = nil) {
+    public init(text: String, spoken: Bool, aggregatedBy: AggregationType) {
         self.text = text
         self.spoken = spoken
         self.aggregatedBy = aggregatedBy
