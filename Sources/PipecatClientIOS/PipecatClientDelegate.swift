@@ -121,6 +121,9 @@ public protocol PipecatClientDelegate: AnyObject {
 
     /// Invoked when the LLM attempts to invoke a function. The provided callback must be provided with a return value.
     func onLLMFunctionCall(functionCallData: LLMFunctionCallData, onResult: ((Value) async -> Void)) async
+
+    /// Invoked when the bot has a new output data
+    func onBotOutput(data: BotOutputData)
 }
 
 extension PipecatClientDelegate {
@@ -164,4 +167,5 @@ extension PipecatClientDelegate {
     public func onBotTtsStopped() {}
     public func onBotLlmSearchResponse(data: BotLLMSearchResponseData) {}
     public func onLLMFunctionCall(functionCallData: LLMFunctionCallData, onResult: ((Value) async -> Void)) async {}
+    public func onBotOutput(data: BotOutputData) {}
 }

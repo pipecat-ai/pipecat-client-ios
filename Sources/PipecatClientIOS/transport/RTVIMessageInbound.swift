@@ -71,6 +71,9 @@ public struct RTVIMessageInbound: Codable {
 
         // Bot LLM search response
         public static let BOT_LLM_SEARCH_RESPONSE = "bot-llm-search-response"
+
+        // All bot output along with metadata like if it's spoken
+        public static let BOT_OUTPUT = "bot-output"
     }
 
     public init(type: String?, data: String?) {
