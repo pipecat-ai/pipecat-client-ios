@@ -43,7 +43,7 @@ public struct BotOutputData: Codable {
     public let spokenProgress: BotOutputProgressData?
 
     /// Protocol 2.0.0: Correlates progress events for the same spoken segment.
-    public let segmentId: String?
+    public let segmentId: Int?
 
     enum CodingKeys: String, CodingKey {
         case text
@@ -62,7 +62,7 @@ public struct BotOutputData: Codable {
         willBeSpoken: Bool? = nil,
         spokenStatus: SpokenStatus? = nil,
         spokenProgress: BotOutputProgressData? = nil,
-        segmentId: String? = nil
+        segmentId: Int? = nil
     ) {
         self.text = text
         self._spoken = spoken
