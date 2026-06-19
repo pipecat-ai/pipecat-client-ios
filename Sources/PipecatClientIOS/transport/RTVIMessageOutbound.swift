@@ -3,7 +3,6 @@ import Foundation
 /// An RTVI control message sent to the Transport.
 public struct RTVIMessageOutbound: Encodable {
 
-    public static let RTVI_PROTOCOL_VERSION = "1.0.0"
     public static let RTVI_MESSAGE_LABEL = "rtvi-ai"
 
     public let id: String
@@ -35,7 +34,7 @@ public struct RTVIMessageOutbound: Encodable {
 
     public static func clientReady() -> RTVIMessageOutbound {
         let data = Value.object([
-            "version": .string(RTVI_PROTOCOL_VERSION),
+            "version": .string(PipecatClient.rtviProtocolVersion),
             "about": .object([
                 "library": .string(PipecatClient.library),
                 "library_version": .string(PipecatClient.libraryVersion)
