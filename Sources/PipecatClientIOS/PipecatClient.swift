@@ -249,11 +249,11 @@ open class PipecatClient {
 
         do {
             if let customBodyParams = startBotParams.requestData {
-                request.httpBody = try JSONEncoder().encode(startBotParams.requestData)
+                request.httpBody = try JSONEncoder().encode(customBodyParams)
             }
 
             Logger.shared.debug(
-                "Fetching from \(String(data: request.httpBody!, encoding: .utf8) ?? "")"
+                "Fetching from \(startBotParams.endpoint) with body: \(request.httpBody.flatMap { String(data: $0, encoding: .utf8) } ?? "none")"
             )
 
             // Create a custom URLSession configuration with the timeout from APIRequest

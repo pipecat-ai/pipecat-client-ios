@@ -6,6 +6,10 @@
 - Added `PipecatClient.rtviProtocolVersion` constant (`"2.0.0"`).
 - The client now logs a warning when the bot is running an older RTVI protocol version than the client.
 
+### Fixed
+
+- Fixed a crash in `startBot` when the request had no `requestData` and the log level was set to `.debug` or `.trace`.
+
 # 1.2.0 — 2026-01-03
 
 ### Added
