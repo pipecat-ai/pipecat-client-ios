@@ -25,6 +25,7 @@ final class FunctionCallTests: ClientTestCase {
                 "tool_call_id": "call_1", "function_name": "get_weather", "arguments": .object(["city": "Lisbon"]),
             ])
         )
+        try await waitForSent(count: 1)
         XCTAssertEqual(handled.map(\.toolCallID), ["call_1"])
         XCTAssertEqual(
             results,
@@ -42,6 +43,7 @@ final class FunctionCallTests: ClientTestCase {
             "llm-function-call-in-progress",
             data: .object(["tool_call_id": "call_1", "function_name": "get_weather"])
         )
+        try await waitForSent(count: 1)
         XCTAssertEqual(results.map { $0["arguments"] }, [.object([:])])
     }
 
@@ -59,6 +61,8 @@ final class FunctionCallTests: ClientTestCase {
                 "function_name": "get_weather", "tool_call_id": "call_1", "args": .object(["city": "Lisbon"]),
             ])
         )
+        try await waitForSent(count: 1)
+        try await waitForCalls()
         XCTAssertEqual(handled.map(\.toolCallID), ["call_1"])
         XCTAssertEqual(results.map { $0["tool_call_id"] }, ["call_1"])
         XCTAssertEqual(delegate.calls.map(\.name), ["onLLMFunctionCall"])

@@ -12,7 +12,6 @@ final class RTVIDocumentTests: ClientTestCase {
         "bot-interrupted": "not handled yet",
         "bot-audio-level": "not handled yet",
         "bot-llm-marker": "not handled yet",
-        "bot-output": "BotOutputData requires aggregated_by, which the protocol deprecates for output_type",
         "llm-raw-text": "not handled yet",
         "stt-raw-text": "not handled yet",
         "system-log": "not handled yet",
@@ -72,6 +71,9 @@ final class RTVIDocumentTests: ClientTestCase {
         for type in document.serverTypes where !Self.answers.contains(type) {
             setUpClient()
             try await receiveExample(of: type)
+            if Self.ignored[type] == nil {
+                try await waitForCalls()
+            }
             let reached = !delegate.calls.isEmpty
             if reached == (Self.ignored[type] != nil) {
                 unexpected.append(reached ? "\(type) reaches the app, but is ignored" : "\(type) doesn't reach the app")
@@ -85,6 +87,7 @@ final class RTVIDocumentTests: ClientTestCase {
         for type in delivered {
             setUpClient()
             try await receiveExample(of: type)
+            try await waitForCalls()
             if !carries(type) {
                 unexpected.append(type)
             }
@@ -97,6 +100,7 @@ final class RTVIDocumentTests: ClientTestCase {
         for type in delivered where document.example(of: type)["data"]?.object != nil {
             setUpClient()
             try await receiveExample(of: type, adding: ["x_unknown": .number(1)])
+            try await waitForCalls()
             if delegate.calls.isEmpty {
                 unexpected.append(type)
             }

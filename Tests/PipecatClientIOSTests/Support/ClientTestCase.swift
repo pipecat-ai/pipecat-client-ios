@@ -39,6 +39,13 @@ class ClientTestCase: XCTestCase {
         try await receive("bot-ready", data: .object(["version": .string(PipecatClient.rtviProtocolVersion)]))
     }
 
+    /// Waits, for up to a second, for the delegate to be called, which some messages do from a task.
+    func waitForCalls() async throws {
+        for _ in 0..<1000 where delegate.calls.isEmpty {
+            try await Task.sleep(nanoseconds: 1_000_000)
+        }
+    }
+
     /// Waits for the client to have sent a number of messages.
     func waitForSent(count: Int) async throws {
         for _ in 0..<100 where transport.sent.count < count {
