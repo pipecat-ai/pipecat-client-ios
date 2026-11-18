@@ -64,10 +64,11 @@ HAND_WRITTEN = {
 }
 
 # Public names that don't follow from the schema's: the SDK's names from before
-# its types were generated, and `BotOutputType`, client-js's name.
+# its types were generated, and client-js's names.
 TYPE_NAMES = {
     "ErrorData": "BotError",
     "ErrorResponseData": "ErrorResponse",
+    "LLMFunctionCallStartMessageData": "LLMFunctionCallStartedData",
     "MetricsMessageData": "PipecatMetrics",
     "RawServerResponseData": "ClientMessageData",
     "TextMessageData": "BotLLMText",

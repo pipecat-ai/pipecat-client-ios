@@ -120,7 +120,28 @@ public protocol PipecatClientDelegate: AnyObject {
     /// Invoked when we receive a bot LLM search response.
     func onBotLlmSearchResponse(data: BotLLMSearchResponseData)
 
+    /// Invoked when the LLM starts calling a function. It carries the function's name when the bot reports it.
+    func onLLMFunctionCallStarted(data: LLMFunctionCallStartedData)
+
+    /// Invoked when the LLM is calling a function. How much it carries depends on the bot's report level for
+    /// the function: only the call's id, or also the function's name and arguments.
+    ///
+    /// To run the function in the app and answer the bot with its result, register a handler with
+    /// `PipecatClient.registerFunctionCallHandler(functionName:callback:)`.
+    func onLLMFunctionCallInProgress(data: LLMFunctionCallInProgressData)
+
+    /// Invoked when a function call finishes, or is cancelled.
+    func onLLMFunctionCallStopped(data: LLMFunctionCallStoppedData)
+
+    @available(
+        *,
+        deprecated,
+        message:
+            "Use registerFunctionCallHandler() or onLLMFunctionCallInProgress() instead. This method will be removed in a future version."
+    )
     /// Invoked when the LLM attempts to invoke a function. The provided callback must be provided with a return value.
+    ///
+    /// Only bots that send the deprecated `llm-function-call` message invoke it.
     func onLLMFunctionCall(functionCallData: LLMFunctionCallData, onResult: ((Value) async -> Void)) async
 
     /// Invoked when the bot has a new output data
@@ -168,6 +189,15 @@ extension PipecatClientDelegate {
     public func onBotTtsStarted() {}
     public func onBotTtsStopped() {}
     public func onBotLlmSearchResponse(data: BotLLMSearchResponseData) {}
+    public func onLLMFunctionCallStarted(data: LLMFunctionCallStartedData) {}
+    public func onLLMFunctionCallInProgress(data: LLMFunctionCallInProgressData) {}
+    public func onLLMFunctionCallStopped(data: LLMFunctionCallStoppedData) {}
+    @available(
+        *,
+        deprecated,
+        message:
+            "Use registerFunctionCallHandler() or onLLMFunctionCallInProgress() instead. This method will be removed in a future version."
+    )
     public func onLLMFunctionCall(functionCallData: LLMFunctionCallData, onResult: ((Value) async -> Void)) async {}
     public func onBotOutput(data: BotOutputData) {}
 }

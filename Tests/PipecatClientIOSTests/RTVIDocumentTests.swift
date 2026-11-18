@@ -6,16 +6,13 @@ import XCTest
 /// message's data, and builds every message it sends as the document's schema
 /// says.
 @MainActor
-final class RTVIDocumentTests: XCTestCase {
+final class RTVIDocumentTests: ClientTestCase {
     /// Server messages the client doesn't hand to the app, and why.
     static let ignored: [String: String] = [
         "bot-interrupted": "not handled yet",
         "bot-audio-level": "not handled yet",
         "bot-llm-marker": "not handled yet",
         "bot-output": "BotOutputData requires aggregated_by, which the protocol deprecates for output_type",
-        "llm-function-call-in-progress": "not handled yet",
-        "llm-function-call-started": "not handled yet",
-        "llm-function-call-stopped": "not handled yet",
         "llm-raw-text": "not handled yet",
         "stt-raw-text": "not handled yet",
         "system-log": "not handled yet",
@@ -54,21 +51,10 @@ final class RTVIDocumentTests: XCTestCase {
     ]
 
     private var document: RTVIDocument!
-    private var transport: TransportStub!
-    private var delegate: RecordingDelegate!
-    private var client: PipecatClient!
 
     override func setUp() async throws {
+        try await super.setUp()
         document = try RTVIDocument.load(version: PipecatClient.rtviProtocolVersion)
-        setUpClient()
-    }
-
-    /// Receives a message, and waits for what it starts, such as a function call.
-    private func receive(_ message: JSON) async throws {
-        try transport.receive(message)
-        for _ in 0..<10 {
-            await Task.yield()
-        }
     }
 
     private func receiveExample(of type: String, adding fields: [String: JSON] = [:]) async throws {
@@ -77,15 +63,6 @@ final class RTVIDocumentTests: XCTestCase {
             payload["data"] = .object(data.merging(fields) { current, _ in current })
         }
         try await receive(.object(payload))
-    }
-
-    private func becomeReady() async throws {
-        try await receive(
-            .object([
-                "label": "rtvi-ai", "type": "bot-ready", "id": "msg_1",
-                "data": .object(["version": .string(PipecatClient.rtviProtocolVersion)]),
-            ])
-        )
     }
 
     // Messages from the server
@@ -145,13 +122,6 @@ final class RTVIDocumentTests: XCTestCase {
         return delegate.calls.contains { $0.data?.carries(data) ?? false }
     }
 
-    private func setUpClient() {
-        transport = TransportStub()
-        delegate = RecordingDelegate()
-        client = PipecatClient(options: PipecatClientOptions(transport: transport))
-        client.delegate = delegate
-    }
-
     /// The message types the client's `MessageType` enums name.
     private static func knownMessageTypes() throws -> Set<String> {
         let transport = URL(fileURLWithPath: #filePath)
@@ -183,12 +153,9 @@ final class RTVIDocumentTests: XCTestCase {
         try client.sendClientMessage(msgType: "set-volume", data: .object(["level": .number(5)]))
         try client.sendText(content: "What's the weather?", options: SendTextOptions(runImmediately: true))
         try await receive(
-            .object([
-                "label": "rtvi-ai", "type": "llm-function-call", "id": "msg_2",
-                "data": .object([
-                    "function_name": "get_weather", "tool_call_id": "call_1",
-                    "args": .object(["city": "Lisbon"]),
-                ]),
+            "llm-function-call-in-progress",
+            data: .object([
+                "function_name": "get_weather", "tool_call_id": "call_1", "arguments": .object(["city": "Lisbon"]),
             ])
         )
         try client.disconnectBot()
@@ -227,13 +194,6 @@ final class RTVIDocumentTests: XCTestCase {
             _ = try await failed
             XCTFail("an error-response doesn't fail the request")
         } catch {}
-    }
-
-    private func waitForSent(count: Int) async throws {
-        for _ in 0..<100 where transport.sent.count < count {
-            try await Task.sleep(nanoseconds: 1_000_000)
-        }
-        XCTAssertEqual(transport.sent.count, count)
     }
 }
 
@@ -284,11 +244,5 @@ struct RTVIDocument {
             return ["\(message["type"]?.text ?? "a message without a type") isn't a message a client sends"]
         }
         return validator.violations(message, payload).map { "\(type) \($0)" }
-    }
-}
-
-extension JSON: ExpressibleByStringLiteral {
-    init(stringLiteral value: String) {
-        self = .string(value)
     }
 }

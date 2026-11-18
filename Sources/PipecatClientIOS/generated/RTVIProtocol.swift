@@ -371,7 +371,7 @@ struct LLMFunctionCallResultData: Codable, Equatable {
 }
 
 /// Data for LLM function call start notification.
-public struct LLMFunctionCallStartData: Codable, Equatable {
+public struct LLMFunctionCallStartedData: Codable, Equatable {
     /// Name of the function called.
     public let functionName: String?
 

@@ -63,7 +63,16 @@ public struct RTVIMessageInbound: Codable {
         /// Server message
         public static let SERVER_MESSAGE = "server-message"
 
-        /// LLM
+        /// The LLM started calling a function.
+        public static let LLM_FUNCTION_CALL_STARTED = "llm-function-call-started"
+
+        /// The LLM is calling a function, with as much about the call as the bot reports.
+        public static let LLM_FUNCTION_CALL_IN_PROGRESS = "llm-function-call-in-progress"
+
+        /// A function call finished, or was cancelled.
+        public static let LLM_FUNCTION_CALL_STOPPED = "llm-function-call-stopped"
+
+        /// The LLM is calling a function. Deprecated: bots send `LLM_FUNCTION_CALL_IN_PROGRESS` instead.
         public static let LLM_FUNCTION_CALL = "llm-function-call"
 
         /// Context

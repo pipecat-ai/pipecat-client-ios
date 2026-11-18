@@ -93,6 +93,19 @@ final class RecordingDelegate: PipecatClientDelegate {
         record("onBotLlmSearchResponse", data)
     }
 
+    func onLLMFunctionCallStarted(data: LLMFunctionCallStartedData) {
+        record("onLLMFunctionCallStarted", data)
+    }
+
+    func onLLMFunctionCallInProgress(data: LLMFunctionCallInProgressData) {
+        record("onLLMFunctionCallInProgress", data)
+    }
+
+    func onLLMFunctionCallStopped(data: LLMFunctionCallStoppedData) {
+        record("onLLMFunctionCallStopped", data)
+    }
+
+    @available(*, deprecated)
     func onLLMFunctionCall(functionCallData: LLMFunctionCallData, onResult: ((Value) async -> Void)) async {
         record("onLLMFunctionCall", functionCallData)
     }

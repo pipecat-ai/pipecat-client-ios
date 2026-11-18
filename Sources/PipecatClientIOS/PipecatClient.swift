@@ -100,50 +100,39 @@ open class PipecatClient {
                     self.disconnect(completion: nil)
                 }
             }
+        case RTVIMessageInbound.MessageType.LLM_FUNCTION_CALL_STARTED:
+            if let startedData = try? JSONDecoder()
+                .decode(LLMFunctionCallStartedData.self, from: Data(voiceMessage.data!.utf8)) {
+                self.delegate?.onLLMFunctionCallStarted(data: startedData)
+            }
+        case RTVIMessageInbound.MessageType.LLM_FUNCTION_CALL_IN_PROGRESS:
+            if let inProgressData = try? JSONDecoder()
+                .decode(LLMFunctionCallInProgressData.self, from: Data(voiceMessage.data!.utf8)) {
+                // A handler can only run when the bot reports which function it calls.
+                if let functionName = inProgressData.functionName {
+                    self.runFunctionCallHandler(
+                        functionCallData: LLMFunctionCallData(
+                            functionName: functionName,
+                            toolCallID: inProgressData.toolCallID,
+                            args: inProgressData.arguments ?? .object([:])
+                        )
+                    )
+                }
+                self.delegate?.onLLMFunctionCallInProgress(data: inProgressData)
+            }
+        case RTVIMessageInbound.MessageType.LLM_FUNCTION_CALL_STOPPED:
+            if let stoppedData = try? JSONDecoder()
+                .decode(LLMFunctionCallStoppedData.self, from: Data(voiceMessage.data!.utf8)) {
+                self.delegate?.onLLMFunctionCallStopped(data: stoppedData)
+            }
         case RTVIMessageInbound.MessageType.LLM_FUNCTION_CALL:
             if let functionCallData = try? JSONDecoder()
                 .decode(LLMFunctionCallData.self, from: Data(voiceMessage.data!.utf8)) {
+                self.runFunctionCallHandler(functionCallData: functionCallData)
                 Task {
-                    // Check if we have a registered handler for this function
-                    if let registeredCallback = self.functionCallCallbacks[functionCallData.functionName] {
-                        // Use the registered callback
-                        await registeredCallback(functionCallData) { result in
-                            let resultData = try? await LLMFunctionCallResult(
-                                functionName: functionCallData.functionName,
-                                toolCallID: functionCallData.toolCallID,
-                                arguments: functionCallData.args,
-                                result: result
-                            )
-                            .convertToRtviValue()
-                            let resultMessage = RTVIMessageOutbound(
-                                type: RTVIMessageOutbound.MessageType.LLM_FUNCTION_CALL_RESULT,
-                                data: resultData
-                            )
-                            self.sendMessage(msg: resultMessage) { result in
-                                if case .failure(let error) = result {
-                                    Logger.shared.error("Failing to send app result message \(error)")
-                                }
-                            }
-                        }
-                    }
                     await self.delegate?
                         .onLLMFunctionCall(functionCallData: functionCallData) { result in
-                            let resultData = try? await LLMFunctionCallResult(
-                                functionName: functionCallData.functionName,
-                                toolCallID: functionCallData.toolCallID,
-                                arguments: functionCallData.args,
-                                result: result
-                            )
-                            .convertToRtviValue()
-                            let resultMessage = RTVIMessageOutbound(
-                                type: RTVIMessageOutbound.MessageType.LLM_FUNCTION_CALL_RESULT,
-                                data: resultData
-                            )
-                            self.sendMessage(msg: resultMessage) { result in
-                                if case .failure(let error) = result {
-                                    Logger.shared.error("Failing to send app result message \(error)")
-                                }
-                            }
+                            self.sendFunctionCallResult(functionCallData: functionCallData, result: result)
                         }
                 }
             }
@@ -155,6 +144,37 @@ open class PipecatClient {
             }
         default:
             Logger.shared.debug("[Pipecat Client] Unrecognized message type: \(type), message: \(voiceMessage)")
+        }
+    }
+
+    /// Runs the handler registered for the function the bot calls, which answers the bot with its result.
+    private func runFunctionCallHandler(functionCallData: LLMFunctionCallData) {
+        guard let registeredCallback = self.functionCallCallbacks[functionCallData.functionName] else {
+            return
+        }
+        Task {
+            await registeredCallback(functionCallData) { result in
+                self.sendFunctionCallResult(functionCallData: functionCallData, result: result)
+            }
+        }
+    }
+
+    private func sendFunctionCallResult(functionCallData: LLMFunctionCallData, result: Value) {
+        let resultData = try? LLMFunctionCallResultData(
+            functionName: functionCallData.functionName,
+            toolCallID: functionCallData.toolCallID,
+            arguments: functionCallData.args,
+            result: result
+        )
+        .convertToRtviValue()
+        let resultMessage = RTVIMessageOutbound(
+            type: RTVIMessageOutbound.MessageType.LLM_FUNCTION_CALL_RESULT,
+            data: resultData
+        )
+        self.sendMessage(msg: resultMessage) { result in
+            if case .failure(let error) = result {
+                Logger.shared.error("Failing to send app result message \(error)")
+            }
         }
     }
 
@@ -927,8 +947,10 @@ open class PipecatClient {
 
     /// Registers a function call handler for a specific function name.
     ///
-    /// When the bot calls a function with the specified name, the registered callback
-    /// will be invoked instead of the delegate's `onLLMFunctionCall` method.
+    /// When the bot calls a function with the specified name, the callback runs with the call's
+    /// arguments, and the result it's given is sent back to the bot. The bot reports a call's function
+    /// name and arguments only when its report level for the function allows it: in Pipecat, at least
+    /// `RTVIFunctionCallReportLevel.ARGUMENTS` in `RTVIObserverParams.function_call_report_level`.
     ///
     /// - Parameters:
     ///   - functionName: The name of the function to handle.
@@ -942,8 +964,7 @@ open class PipecatClient {
 
     /// Unregisters a function call handler for a specific function name.
     ///
-    /// After calling this method, function calls with the specified name will
-    /// be handled by the delegate's `onLLMFunctionCall` method instead.
+    /// After calling this method, the client no longer answers calls to the function.
     ///
     /// - Parameter functionName: The name of the function to unregister.
     public func unregisterFunctionCallHandler(functionName: String) {
@@ -952,8 +973,7 @@ open class PipecatClient {
 
     /// Unregisters all function call handlers.
     ///
-    /// After calling this method, all function calls will be handled by
-    /// the delegate's `onLLMFunctionCall` method.
+    /// After calling this method, the client no longer answers any function call.
     public func unregisterAllFunctionCallHandlers() {
         functionCallCallbacks.removeAll()
     }
