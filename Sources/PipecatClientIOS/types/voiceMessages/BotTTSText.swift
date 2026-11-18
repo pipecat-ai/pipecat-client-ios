@@ -1,9 +1,4 @@
 import Foundation
 
-public struct BotTTSText: Codable {
-    public let text: String
-
-    public init(text: String) {
-        self.text = text
-    }
-}
+/// Text the bot's TTS spoke, as `bot-tts-text` reports it.
+public typealias BotTTSText = BotLLMText

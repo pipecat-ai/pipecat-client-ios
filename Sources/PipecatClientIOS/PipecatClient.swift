@@ -96,7 +96,7 @@ open class PipecatClient {
             self.delegate?.onError(message: voiceMessage)
             if let botError = try? JSONDecoder().decode(BotError.self, from: Data(voiceMessage.data!.utf8)) {
                 let errorMessage = "Received an error from the Bot: \(botError.error)"
-                if botError.fatal ?? false {
+                if botError.fatal {
                     self.disconnect(completion: nil)
                 }
             }

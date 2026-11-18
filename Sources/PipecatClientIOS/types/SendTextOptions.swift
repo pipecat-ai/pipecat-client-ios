@@ -1,6 +1,6 @@
 import Foundation
 
-public struct SendTextOptions: Codable {
+public struct SendTextOptions: Codable, Equatable {
     public let runImmediately: Bool?
     public let audioResponse: Bool?
 
