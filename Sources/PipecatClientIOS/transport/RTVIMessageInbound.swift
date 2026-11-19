@@ -25,7 +25,7 @@ public struct RTVIMessageInbound: Codable {
         /// STT transcript (both local and remote) flagged with partial final or sentence
         public static let TRANSCRIPT = "transcript"
 
-        /// STT transcript from the user
+        /// STT transcript from the user. Deprecated: use `USER_INPUT` or `STT_RAW_TEXT` instead.
         public static let USER_TRANSCRIPTION = "user-transcription"
 
         /// STT transcript from the bot
@@ -46,14 +46,14 @@ public struct RTVIMessageInbound: Codable {
         /// Pipecat metrics
         public static let METRICS = "metrics"
 
-        /// LLM transcript from the bot
+        /// LLM transcript from the bot. Deprecated: use `LLM_RAW_TEXT` instead.
         public static let BOT_LLM_TEXT = "bot-llm-text"
         /// LLM transcript from the bot has started
         public static let BOT_LLM_STARTED = "bot-llm-started"
         /// LLM transcript from the bot has stopped
         public static let BOT_LLM_STOPPED = "bot-llm-stopped"
 
-        /// TTS transcript from the bot
+        /// TTS transcript from the bot. Deprecated: use `TTS_RAW_TEXT` instead.
         public static let BOT_TTS_TEXT = "bot-tts-text"
         /// LLM transcript from the bot has started
         public static let BOT_TTS_STARTED = "bot-tts-started"

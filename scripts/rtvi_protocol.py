@@ -63,8 +63,9 @@ HAND_WRITTEN = {
     "UserTranscriptionMessageData": "Transcript",
 }
 
-# Public names that don't follow from the schema's: the SDK's names from before
-# its types were generated, and client-js's names.
+# Public names that don't follow from the schema's, which lose a `MessageData`
+# suffix to `Data`: the SDK's names from before its types were generated, and
+# client-js's names.
 TYPE_NAMES = {
     "ErrorData": "BotError",
     "ErrorResponseData": "ErrorResponse",
@@ -72,7 +73,7 @@ TYPE_NAMES = {
     "LLMFunctionCallStartMessageData": "LLMFunctionCallStartedData",
     "MetricsMessageData": "PipecatMetrics",
     "RawServerResponseData": "ClientMessageData",
-    "TextMessageData": "BotLLMText",
+    "TextMessageData": "TextMessageData",
     "TextType": "BotOutputType",
 }
 

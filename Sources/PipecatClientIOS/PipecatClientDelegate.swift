@@ -92,6 +92,12 @@ public protocol PipecatClientDelegate: AnyObject {
     /// Invoked when the local user stops talking.
     func onUserStoppedSpeaking()
 
+    @available(
+        *,
+        deprecated,
+        message:
+            "Use onUserInput() to show what the user said, or onSttRawText() to inspect what the STT produced. This method will be removed in a future version."
+    )
     /// Invoked when user transcript data is available.
     func onUserTranscript(data: Transcript)
 
@@ -99,6 +105,12 @@ public protocol PipecatClientDelegate: AnyObject {
     /// Invoked when bot transcript data is available.
     func onBotTranscript(data: BotLLMText)
 
+    @available(
+        *,
+        deprecated,
+        message:
+            "Use onBotOutput() to show the bot's text, or onLlmRawText() to inspect what the LLM produced. This method will be removed in a future version."
+    )
     /// Invoked when received the bot transcription from the LLM.
     func onBotLlmText(data: BotLLMText)
 
@@ -108,6 +120,12 @@ public protocol PipecatClientDelegate: AnyObject {
     /// Invoked when the bot LLM text has stopped.
     func onBotLlmStopped()
 
+    @available(
+        *,
+        deprecated,
+        message:
+            "Use onBotOutput() to show the bot's text, or onTtsRawText() to inspect what the TTS produced. This method will be removed in a future version."
+    )
     /// Invoked when text is spoken by the bot.
     func onBotTtsText(data: BotTTSText)
 
@@ -246,12 +264,30 @@ extension PipecatClientDelegate {
     public func onBotStoppedSpeaking() {}
     public func onUserStartedSpeaking() {}
     public func onUserStoppedSpeaking() {}
+    @available(
+        *,
+        deprecated,
+        message:
+            "Use onUserInput() to show what the user said, or onSttRawText() to inspect what the STT produced. This method will be removed in a future version."
+    )
     public func onUserTranscript(data: Transcript) {}
     @available(*, deprecated, message: "Use onBotOutput() instead. This method will be removed in a future version.")
     public func onBotTranscript(data: BotLLMText) {}
+    @available(
+        *,
+        deprecated,
+        message:
+            "Use onBotOutput() to show the bot's text, or onLlmRawText() to inspect what the LLM produced. This method will be removed in a future version."
+    )
     public func onBotLlmText(data: BotLLMText) {}
     public func onBotLlmStarted() {}
     public func onBotLlmStopped() {}
+    @available(
+        *,
+        deprecated,
+        message:
+            "Use onBotOutput() to show the bot's text, or onTtsRawText() to inspect what the TTS produced. This method will be removed in a future version."
+    )
     public func onBotTtsText(data: BotTTSText) {}
     public func onBotTtsStarted() {}
     public func onBotTtsStopped() {}

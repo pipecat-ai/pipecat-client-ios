@@ -125,16 +125,6 @@ public struct BotLLMMarkerData: Codable, Equatable {
     }
 }
 
-/// Data for text-based RTVI messages.
-public struct BotLLMText: Codable, Equatable {
-    /// The text.
-    public let text: String
-
-    public init(text: String) {
-        self.text = text
-    }
-}
-
 /// Built-in text types.
 public struct BotOutputType: RawRepresentable, Codable, Hashable {
     public let rawValue: String
@@ -765,6 +755,16 @@ public struct TTSUsageMetricsData: Codable, Equatable {
         self.processor = processor
         self.model = model
         self.value = value
+    }
+}
+
+/// Data for text-based RTVI messages.
+public struct TextMessageData: Codable, Equatable {
+    /// The text.
+    public let text: String
+
+    public init(text: String) {
+        self.text = text
     }
 }
 

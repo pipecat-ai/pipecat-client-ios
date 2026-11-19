@@ -56,6 +56,7 @@ final class RecordingDelegate: PipecatClientDelegate {
         record("onUserStoppedSpeaking")
     }
 
+    @available(*, deprecated)
     func onUserTranscript(data: Transcript) {
         record("onUserTranscript", data)
     }
@@ -65,6 +66,7 @@ final class RecordingDelegate: PipecatClientDelegate {
         record("onBotTranscript", data)
     }
 
+    @available(*, deprecated)
     func onBotLlmText(data: BotLLMText) {
         record("onBotLlmText", data)
     }
@@ -77,6 +79,7 @@ final class RecordingDelegate: PipecatClientDelegate {
         record("onBotLlmStopped")
     }
 
+    @available(*, deprecated)
     func onBotTtsText(data: BotTTSText) {
         record("onBotTtsText", data)
     }
