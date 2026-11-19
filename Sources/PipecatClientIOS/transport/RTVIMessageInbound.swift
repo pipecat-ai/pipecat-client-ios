@@ -83,6 +83,48 @@ public struct RTVIMessageInbound: Codable {
 
         // All bot output along with metadata like if it's spoken
         public static let BOT_OUTPUT = "bot-output"
+
+        /// The bot was interrupted and stopped what it was saying.
+        public static let BOT_INTERRUPTED = "bot-interrupted"
+
+        /// The bot stopped listening to the user.
+        public static let USER_MUTE_STARTED = "user-mute-started"
+
+        /// The bot listens to the user again.
+        public static let USER_MUTE_STOPPED = "user-mute-stopped"
+
+        /// What the user said or typed.
+        public static let USER_INPUT = "user-input"
+
+        /// The user's message as the bot's LLM receives it.
+        public static let USER_LLM_TEXT = "user-llm-text"
+
+        /// Voice activity detection heard the user start speaking.
+        public static let VAD_USER_STARTED_SPEAKING = "vad-user-started-speaking"
+
+        /// Voice activity detection heard the user stop speaking.
+        public static let VAD_USER_STOPPED_SPEAKING = "vad-user-stopped-speaking"
+
+        /// How loud the user's audio is, as the bot measures it.
+        public static let USER_AUDIO_LEVEL = "user-audio-level"
+
+        /// How loud the bot's audio is, as the bot measures it.
+        public static let BOT_AUDIO_LEVEL = "bot-audio-level"
+
+        /// A line of the bot's log.
+        public static let SYSTEM_LOG = "system-log"
+
+        /// The marker the bot's LLM put in a response.
+        public static let BOT_LLM_MARKER = "bot-llm-marker"
+
+        /// A transcription as the bot's STT produces it.
+        public static let STT_RAW_TEXT = "stt-raw-text"
+
+        /// Text as the bot's LLM streams it.
+        public static let LLM_RAW_TEXT = "llm-raw-text"
+
+        /// Text the bot's TTS speaks, as it speaks it.
+        public static let TTS_RAW_TEXT = "tts-raw-text"
     }
 
     public init(type: String?, data: String?) {

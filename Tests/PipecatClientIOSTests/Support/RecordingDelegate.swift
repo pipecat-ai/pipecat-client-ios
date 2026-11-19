@@ -113,4 +113,81 @@ final class RecordingDelegate: PipecatClientDelegate {
     func onBotOutput(data: BotOutputData) {
         record("onBotOutput", data)
     }
+
+    func onBotExpression(data: BotExpressionData) {
+        switch data {
+        case .sound(let sound):
+            calls.append(Call(name: "onBotExpression", data: .object(["sound": .string(sound)])))
+        case .pause(let durationMs):
+            calls.append(Call(name: "onBotExpression", data: .object(["duration_ms": .number(Double(durationMs))])))
+        }
+    }
+
+    func onBotDeliveryUpdated(data: BotDeliveryUpdatedData) {
+        func names(_ delivery: [String]?) -> JSON {
+            delivery.map { .array($0.map(JSON.string)) } ?? .null
+        }
+        calls.append(
+            Call(
+                name: "onBotDeliveryUpdated",
+                data: .object(["delivery": names(data.delivery), "previous": names(data.previous)])
+            )
+        )
+    }
+
+    func onBotInterrupted() {
+        record("onBotInterrupted")
+    }
+
+    func onUserMuteStarted() {
+        record("onUserMuteStarted")
+    }
+
+    func onUserMuteStopped() {
+        record("onUserMuteStopped")
+    }
+
+    func onUserInput(data: UserInputData) {
+        record("onUserInput", data)
+    }
+
+    func onUserLlmText(data: UserLLMText) {
+        record("onUserLlmText", data)
+    }
+
+    func onVadUserStartedSpeaking() {
+        record("onVadUserStartedSpeaking")
+    }
+
+    func onVadUserStoppedSpeaking() {
+        record("onVadUserStoppedSpeaking")
+    }
+
+    func onUserAudioLevel(data: AudioLevelData) {
+        record("onUserAudioLevel", data)
+    }
+
+    func onBotAudioLevel(data: AudioLevelData) {
+        record("onBotAudioLevel", data)
+    }
+
+    func onSystemLog(data: SystemLog) {
+        record("onSystemLog", data)
+    }
+
+    func onBotLlmMarker(data: BotLLMMarkerData) {
+        record("onBotLlmMarker", data)
+    }
+
+    func onSttRawText(data: STTRawTextData) {
+        record("onSttRawText", data)
+    }
+
+    func onLlmRawText(data: LLMRawText) {
+        record("onLlmRawText", data)
+    }
+
+    func onTtsRawText(data: TTSRawText) {
+        record("onTtsRawText", data)
+    }
 }

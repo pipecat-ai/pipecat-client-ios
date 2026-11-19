@@ -9,22 +9,8 @@ import XCTest
 final class RTVIDocumentTests: ClientTestCase {
     /// Server messages the client doesn't hand to the app, and why.
     static let ignored: [String: String] = [
-        "bot-interrupted": "not handled yet",
-        "bot-audio-level": "not handled yet",
-        "bot-llm-marker": "not handled yet",
-        "llm-raw-text": "not handled yet",
-        "stt-raw-text": "not handled yet",
-        "system-log": "not handled yet",
-        "tts-raw-text": "not handled yet",
         "ui-command": "it drives the elements of a web page, which iOS has no equivalent of yet",
         "ui-job-group": "it reports jobs that UI commands started, which iOS doesn't handle",
-        "user-audio-level": "not handled yet",
-        "user-input": "not handled yet",
-        "user-llm-text": "not handled yet",
-        "user-mute-started": "not handled yet",
-        "user-mute-stopped": "not handled yet",
-        "vad-user-started-speaking": "not handled yet",
-        "vad-user-stopped-speaking": "not handled yet",
     ]
 
     /// Server messages answering a request: they settle it.

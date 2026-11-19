@@ -18,6 +18,9 @@ open class PipecatClient {
 
     private var functionCallCallbacks: [String: FunctionCallCallback] = [:]
 
+    /// The delivery of the words the bot is speaking, or `nil` when it isn't speaking.
+    private var botDelivery: [String]?
+
     private lazy var onMessage: (RTVIMessageInbound) -> Void = { [weak self] (voiceMessage: RTVIMessageInbound) in
         guard let self else { return }
         guard let type = voiceMessage.type else {
@@ -80,9 +83,63 @@ open class PipecatClient {
             self.delegate?.onBotStartedSpeaking()
         case RTVIMessageInbound.MessageType.BOT_STOPPED_SPEAKING:
             self.delegate?.onBotStoppedSpeaking()
+            self.setBotDelivery(nil)
         case RTVIMessageInbound.MessageType.BOT_OUTPUT:
             if let botOutputData = try? JSONDecoder().decode(BotOutputData.self, from: Data(voiceMessage.data!.utf8)) {
                 self.delegate?.onBotOutput(data: botOutputData)
+                if let expression = BotExpressionData(output: botOutputData) {
+                    self.delegate?.onBotExpression(data: expression)
+                }
+                // Only spoken words carry a delivery, as they're spoken.
+                if let delivery = botOutputData.delivery {
+                    self.setBotDelivery(delivery)
+                }
+            }
+        case RTVIMessageInbound.MessageType.BOT_INTERRUPTED:
+            self.delegate?.onBotInterrupted()
+        case RTVIMessageInbound.MessageType.USER_MUTE_STARTED:
+            self.delegate?.onUserMuteStarted()
+        case RTVIMessageInbound.MessageType.USER_MUTE_STOPPED:
+            self.delegate?.onUserMuteStopped()
+        case RTVIMessageInbound.MessageType.USER_INPUT:
+            if let userInput = try? JSONDecoder().decode(UserInputData.self, from: Data(voiceMessage.data!.utf8)) {
+                self.delegate?.onUserInput(data: userInput)
+            }
+        case RTVIMessageInbound.MessageType.USER_LLM_TEXT:
+            if let userLLMText = try? JSONDecoder().decode(UserLLMText.self, from: Data(voiceMessage.data!.utf8)) {
+                self.delegate?.onUserLlmText(data: userLLMText)
+            }
+        case RTVIMessageInbound.MessageType.VAD_USER_STARTED_SPEAKING:
+            self.delegate?.onVadUserStartedSpeaking()
+        case RTVIMessageInbound.MessageType.VAD_USER_STOPPED_SPEAKING:
+            self.delegate?.onVadUserStoppedSpeaking()
+        case RTVIMessageInbound.MessageType.USER_AUDIO_LEVEL:
+            if let level = try? JSONDecoder().decode(AudioLevelData.self, from: Data(voiceMessage.data!.utf8)) {
+                self.delegate?.onUserAudioLevel(data: level)
+            }
+        case RTVIMessageInbound.MessageType.BOT_AUDIO_LEVEL:
+            if let level = try? JSONDecoder().decode(AudioLevelData.self, from: Data(voiceMessage.data!.utf8)) {
+                self.delegate?.onBotAudioLevel(data: level)
+            }
+        case RTVIMessageInbound.MessageType.SYSTEM_LOG:
+            if let systemLog = try? JSONDecoder().decode(SystemLog.self, from: Data(voiceMessage.data!.utf8)) {
+                self.delegate?.onSystemLog(data: systemLog)
+            }
+        case RTVIMessageInbound.MessageType.BOT_LLM_MARKER:
+            if let marker = try? JSONDecoder().decode(BotLLMMarkerData.self, from: Data(voiceMessage.data!.utf8)) {
+                self.delegate?.onBotLlmMarker(data: marker)
+            }
+        case RTVIMessageInbound.MessageType.STT_RAW_TEXT:
+            if let rawText = try? JSONDecoder().decode(STTRawTextData.self, from: Data(voiceMessage.data!.utf8)) {
+                self.delegate?.onSttRawText(data: rawText)
+            }
+        case RTVIMessageInbound.MessageType.LLM_RAW_TEXT:
+            if let rawText = try? JSONDecoder().decode(LLMRawText.self, from: Data(voiceMessage.data!.utf8)) {
+                self.delegate?.onLlmRawText(data: rawText)
+            }
+        case RTVIMessageInbound.MessageType.TTS_RAW_TEXT:
+            if let rawText = try? JSONDecoder().decode(TTSRawText.self, from: Data(voiceMessage.data!.utf8)) {
+                self.delegate?.onTtsRawText(data: rawText)
             }
         case RTVIMessageInbound.MessageType.SERVER_RESPONSE:
             _ = self.messageDispatcher.resolve(message: voiceMessage)
@@ -468,6 +525,17 @@ open class PipecatClient {
         }
     }
 
+    /// Tracks the bot's delivery, reporting each change. A delivery is a set, so the same names in another order
+    /// are no change.
+    private func setBotDelivery(_ delivery: [String]?) {
+        let previous = self.botDelivery
+        if delivery.map(Set.init) == previous.map(Set.init) {
+            return
+        }
+        self.botDelivery = delivery
+        self.delegate?.onBotDeliveryUpdated(data: BotDeliveryUpdatedData(delivery: delivery, previous: previous))
+    }
+
     /// Disconnects from the active RTVI session (async/await).
     ///
     /// This method gracefully closes the transport connection, cleans up resources,
@@ -479,6 +547,7 @@ open class PipecatClient {
     public func disconnect() async throws {
         self.transport.setState(state: .disconnecting)
         self.disconnectRequested = true
+        self.setBotDelivery(nil)
         try await self.transport.disconnect()
         self.messageDispatcher.disconnect()
     }
