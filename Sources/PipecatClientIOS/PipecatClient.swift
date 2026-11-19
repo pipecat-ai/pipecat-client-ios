@@ -21,6 +21,15 @@ open class PipecatClient {
     /// The delivery of the words the bot is speaking, or `nil` when it isn't speaking.
     private var botDelivery: [String]?
 
+    /// The RTVI protocol version the bot speaks, as its major, minor and patch numbers; zeros until it's ready.
+    private var botVersion: [Int] = [0, 0, 0]
+
+    /// The request that started the bot, whose endpoint, headers and timeout file uploads use.
+    private var startBotParams: APIRequest?
+
+    /// The upload route the start-bot response advertised, as `fileUploadUrl`.
+    private var advertisedFileUploadURL: String?
+
     private lazy var onMessage: (RTVIMessageInbound) -> Void = { [weak self] (voiceMessage: RTVIMessageInbound) in
         guard let self else { return }
         guard let type = voiceMessage.type else {
@@ -33,6 +42,7 @@ open class PipecatClient {
             self.transport.setState(state: .ready)
             if let botReadyData = try? JSONDecoder().decode(BotReadyData.self, from: Data(voiceMessage.data!.utf8)) {
                 Logger.shared.info("Bot ready: \(botReadyData)")
+                self.botVersion = botReadyData.version.split(separator: ".").map { Int($0) ?? 0 }
                 let botMajor = Int(botReadyData.version.split(separator: ".").first ?? "0") ?? 0
                 let clientMajor = Int(PipecatClient.rtviProtocolVersion.split(separator: ".").first ?? "0") ?? 0
                 if botMajor < clientMajor {
@@ -355,7 +365,12 @@ open class PipecatClient {
                 throw HttpError(message: message)
             }
 
-            return try JSONDecoder().decode(T.self, from: data)
+            let result = try JSONDecoder().decode(T.self, from: data)
+            self.startBotParams = startBotParams
+            // Pipecat's runner and Pipecat Cloud advertise it in camelCase; snake_case is accepted too.
+            let fields = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any]
+            self.advertisedFileUploadURL = (fields?["fileUploadUrl"] ?? fields?["file_upload_url"]) as? String
+            return result
         } catch {
             Logger.shared.error(error.localizedDescription)
             throw HttpError(message: "Error fetching.", underlyingError: error)
@@ -548,6 +563,9 @@ open class PipecatClient {
         self.transport.setState(state: .disconnecting)
         self.disconnectRequested = true
         self.setBotDelivery(nil)
+        self.botVersion = [0, 0, 0]
+        self.startBotParams = nil
+        self.advertisedFileUploadURL = nil
         try await self.transport.disconnect()
         self.messageDispatcher.disconnect()
     }
@@ -990,6 +1008,152 @@ open class PipecatClient {
     public func sendText(content: String, options: SendTextOptions? = nil) throws {
         try self.assertReady()
         try self.sendMessage(msg: .sendText(content: content, options: options))
+    }
+
+    /// Sends a file to the bot, with text that goes with it, such as a question about it (async/await).
+    ///
+    /// The bot's LLM receives the file as part of the user's message. A file can be sent with its content, or as a
+    /// URL the bot fetches it from. A file whose message is larger than the transport sends is uploaded first, to
+    /// the `fileUploadUrl` the start-bot response advertised or else `PipecatClientOptions.fileUploadEndpoint`, and
+    /// sent as the URL the upload returns.
+    ///
+    /// - Parameters:
+    ///   - file: The file, such as `RTVIFile(data:format:name:)` or `RTVIFile(url:format:name:)`.
+    ///   - content: Text that goes with the file.
+    ///   - options: Optional `SendFileOptions` to customize how the bot handles the file.
+    /// - Throws:
+    ///   - `BotNotReadyError` if the bot is not in a ready state to accept messages
+    ///   - `UnsupportedFeatureError` if the bot speaks an RTVI protocol older than 2.2.0
+    ///   - `OtherError` if the file must be uploaded and there is nowhere to upload it
+    ///   - `HttpError` if the upload fails
+    ///   - Communication errors if the message fails to send
+    public func sendFile(file: RTVIFile, content: String, options: SendFileOptions? = nil) async throws {
+        try self.assertReady()
+        if !self.botSupports(major: 2, minor: 2) {
+            throw UnsupportedFeatureError(feature: "sendFile", source: "bot", message: "requires RTVI protocol 2.2.0+")
+        }
+        var message = try RTVIMessageOutbound.sendFile(file: file, content: content, options: options)
+        if case .fileBytes(let bytes) = file.source,
+            try JSONEncoder().encode(message).count > self.transport.maxMessageSize,
+            let data = Data(base64Encoded: bytes.bytes) {
+            let uploaded = try await self.uploadFile(data: data, format: file.format, name: file.name)
+            message = try .sendFile(
+                file: RTVIFile(format: file.format, source: uploaded.source, name: file.name ?? uploaded.name),
+                content: content,
+                options: options
+            )
+        }
+        try self.sendMessage(msg: message)
+    }
+
+    /// Sends a file to the bot, with text that goes with it, such as a question about it (completion-based).
+    ///
+    /// - Parameters:
+    ///   - file: The file, such as `RTVIFile(data:format:name:)` or `RTVIFile(url:format:name:)`.
+    ///   - content: Text that goes with the file.
+    ///   - options: Optional `SendFileOptions` to customize how the bot handles the file.
+    ///   - completion: A closure called when the file has been sent, or with the error that stopped it.
+    public func sendFile(
+        file: RTVIFile,
+        content: String,
+        options: SendFileOptions? = nil,
+        completion: ((Result<Void, AsyncExecutionError>) -> Void)?
+    ) {
+        Task {
+            do {
+                try await self.sendFile(file: file, content: content, options: options)
+                completion?(.success(()))
+            } catch {
+                completion?(.failure(AsyncExecutionError(functionName: "sendFile", underlyingError: error)))
+            }
+        }
+    }
+
+    /// Uploads a file with a multipart `POST`, which answers with the file as `send-file` takes it, by its URL.
+    /// The upload carries the start-bot request's headers, such as its authorization, and its timeout.
+    private func uploadFile(data: Data, format: String, name: String?) async throws -> RTVIFile {
+        // The backend's advertisement wins over the option: only the backend can mint a session-scoped route.
+        guard let endpoint = self.advertisedFileUploadURL ?? self.options.fileUploadEndpoint?.relativeString else {
+            throw OtherError(
+                message:
+                    "Unable to determine upload URL: the start-bot response did not advertise a fileUploadUrl and no fileUploadEndpoint is set in PipecatClientOptions (file uploads may be disabled on the server)"
+            )
+        }
+        guard let url = URL(string: endpoint, relativeTo: self.startBotParams?.endpoint)?.absoluteURL,
+            url.scheme != nil
+        else {
+            throw OtherError(message: "Unable to resolve upload URL \"\(endpoint)\" without a startBot endpoint")
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        for header in self.startBotParams?.headers ?? [] {
+            for (key, value) in header {
+                request.setValue(value, forHTTPHeaderField: key)
+            }
+        }
+        if let timeout = self.startBotParams?.timeout {
+            request.timeoutInterval = timeout
+        }
+        let boundary = "pipecat-\(UUID().uuidString)"
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        let filename = (name ?? "uploaded_file").replacingOccurrences(of: "\"", with: "'")
+        var body = Data(
+            """
+            --\(boundary)\r
+            Content-Disposition: form-data; name="file"; filename="\(filename)"\r
+            Content-Type: \(format)\r
+            \r
+
+            """.utf8
+        )
+        body.append(data)
+        body.append(Data("\r\n--\(boundary)--\r\n".utf8))
+        request.httpBody = body
+
+        let (responseData, response) = try await URLSession.shared.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
+            let message = "Error uploading the file: \(String(data: responseData, encoding: .utf8) ?? "Unknown error")"
+            Logger.shared.error(message)
+            throw HttpError(message: message)
+        }
+        return try JSONDecoder().decode(RTVIFile.self, from: responseData)
+    }
+
+    /// Sends DTMF keypresses to the bot, such as `"123#"`.
+    ///
+    /// A bot of RTVI 2.1.0 or later receives the keys in one message; a bot of 2.0.x receives a message a key.
+    ///
+    /// - Parameter dtmf: The keys, in order: `0`-`9`, `*` or `#`.
+    /// - Throws:
+    ///   - `BotNotReadyError` if the bot is not in a ready state to accept messages
+    ///   - `OtherError` if `dtmf` is empty or has a character that isn't a key
+    ///   - `UnsupportedFeatureError` if the bot speaks an RTVI protocol older than 2.0.0
+    ///   - Communication errors if the message fails to send
+    public func sendDTMF(dtmf: String) throws {
+        try self.assertReady()
+        let keys = Set("0123456789*#")
+        if dtmf.isEmpty || !dtmf.allSatisfy(keys.contains) {
+            throw OtherError(message: "Invalid DTMF sequence \"\(dtmf)\". Only 0-9, * and # are allowed.")
+        }
+        if !self.botSupports(major: 2, minor: 0) {
+            throw UnsupportedFeatureError(feature: "DTMF", source: "bot", message: "requires RTVI protocol 2.0.0+")
+        }
+        let buttons = dtmf.map { KeypadEntry(rawValue: String($0)) }
+        if self.botSupports(major: 2, minor: 1) {
+            try self.sendMessage(msg: .dtmf(buttons: buttons))
+        } else {
+            for button in buttons {
+                try self.sendMessage(msg: .dtmf(button: button))
+            }
+        }
+    }
+
+    /// Whether the bot speaks an RTVI protocol at least as new as a major and minor version.
+    private func botSupports(major: Int, minor: Int) -> Bool {
+        let botMajor = self.botVersion.first ?? 0
+        let botMinor = self.botVersion.count > 1 ? self.botVersion[1] : 0
+        return botMajor > major || (botMajor == major && botMinor >= minor)
     }
 
     /// Sends a disconnect signal to the bot while maintaining the transport connection.

@@ -206,50 +206,6 @@ public struct ErrorResponse: Codable, Equatable {
     }
 }
 
-/// File data structure for RTVI file sending.
-public struct File: Codable, Equatable {
-    public enum Source: Codable, Equatable {
-        case fileBytes(FileBytes)
-        case fileUrl(FileUrl)
-
-        public init(from decoder: Decoder) throws {
-            if let value = try? FileBytes(from: decoder) {
-                self = .fileBytes(value)
-                return
-            }
-            if let value = try? FileUrl(from: decoder) {
-                self = .fileUrl(value)
-                return
-            }
-            throw DecodingError.dataCorrupted(
-                DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Not any of FileBytes, FileUrl")
-            )
-        }
-
-        public func encode(to encoder: Encoder) throws {
-            switch self {
-            case .fileBytes(let value):
-                try value.encode(to: encoder)
-            case .fileUrl(let value):
-                try value.encode(to: encoder)
-            }
-        }
-    }
-
-    /// The file's MIME type, such as `application/pdf` or `image/png`.
-    public let format: String
-    /// The file's name.
-    public let name: String?
-    /// Where the file's content is: its bytes, or a URL.
-    public let source: Source
-
-    public init(format: String, source: Source, name: String? = nil) {
-        self.format = format
-        self.name = name
-        self.source = source
-    }
-}
-
 /// File source as base64-encoded bytes.
 public struct FileBytes: Codable, Equatable {
     public struct SourceType: RawRepresentable, Codable, Hashable {
@@ -272,7 +228,7 @@ public struct FileBytes: Codable, Equatable {
     /// For an image, its height in pixels.
     public let height: Int?
 
-    public init(bytes: String, type: SourceType? = nil, width: Int? = nil, height: Int? = nil) {
+    public init(bytes: String, type: SourceType? = .bytes, width: Int? = nil, height: Int? = nil) {
         self.type = type
         self.bytes = bytes
         self.width = width
@@ -301,7 +257,7 @@ public struct FileUrl: Codable, Equatable {
     /// URLs, its own cloud IAM), and otherwise the LLM service's `FileResolver` downloads the bytes and inlines them.
     public let url: String
 
-    public init(url: String, type: SourceType? = nil) {
+    public init(url: String, type: SourceType? = .url) {
         self.type = type
         self.url = url
     }
@@ -529,6 +485,50 @@ public struct ProcessingMetricsData: Codable, Equatable {
     }
 }
 
+/// File data structure for RTVI file sending.
+public struct RTVIFile: Codable, Equatable {
+    public enum Source: Codable, Equatable {
+        case fileBytes(FileBytes)
+        case fileUrl(FileUrl)
+
+        public init(from decoder: Decoder) throws {
+            if let value = try? FileBytes(from: decoder) {
+                self = .fileBytes(value)
+                return
+            }
+            if let value = try? FileUrl(from: decoder) {
+                self = .fileUrl(value)
+                return
+            }
+            throw DecodingError.dataCorrupted(
+                DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Not any of FileBytes, FileUrl")
+            )
+        }
+
+        public func encode(to encoder: Encoder) throws {
+            switch self {
+            case .fileBytes(let value):
+                try value.encode(to: encoder)
+            case .fileUrl(let value):
+                try value.encode(to: encoder)
+            }
+        }
+    }
+
+    /// The file's MIME type, such as `application/pdf` or `image/png`.
+    public let format: String
+    /// The file's name.
+    public let name: String?
+    /// Where the file's content is: its bytes, or a URL.
+    public let source: Source
+
+    public init(format: String, source: Source, name: String? = nil) {
+        self.format = format
+        self.name = name
+        self.source = source
+    }
+}
+
 /// Data structure expected from client messages sent to the RTVI server.
 struct RawClientData: Codable, Equatable {
     /// The message's type, one of the application's own.
@@ -607,11 +607,11 @@ struct SendFileData: Codable, Equatable {
     /// Text that goes with the file, such as a question about it.
     let content: String
     /// The file.
-    let file: File
+    let file: RTVIFile
     /// How the bot handles the file.
     let options: SendFileOptions?
 
-    init(content: String, file: File, options: SendFileOptions? = nil) {
+    init(content: String, file: RTVIFile, options: SendFileOptions? = nil) {
         self.content = content
         self.file = file
         self.options = options

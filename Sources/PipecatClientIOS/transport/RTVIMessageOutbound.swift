@@ -18,6 +18,8 @@ public struct RTVIMessageOutbound: Encodable {
         public static let APPEND_TO_CONTEXT = "append-to-context"
         public static let SEND_TEXT = "send-text"
         public static let LLM_FUNCTION_CALL_RESULT = "llm-function-call-result"
+        public static let SEND_FILE = "send-file"
+        public static let DTMF = "dtmf"
     }
 
     public init(
@@ -77,4 +79,30 @@ public struct RTVIMessageOutbound: Encodable {
         )
     }
 
+    public static func sendFile(
+        file: RTVIFile,
+        content: String,
+        options: SendFileOptions? = nil
+    ) throws -> RTVIMessageOutbound {
+        return RTVIMessageOutbound(
+            type: RTVIMessageOutbound.MessageType.SEND_FILE,
+            data: try SendFileData(content: content, file: file, options: options).convertToRtviValue()
+        )
+    }
+
+    /// DTMF keys, for a bot of RTVI 2.1.0 or later.
+    public static func dtmf(buttons: [KeypadEntry]) throws -> RTVIMessageOutbound {
+        return RTVIMessageOutbound(
+            type: RTVIMessageOutbound.MessageType.DTMF,
+            data: try DTMFInputData(buttons: buttons).convertToRtviValue()
+        )
+    }
+
+    /// A DTMF key, for a bot of RTVI 2.0.x, which takes one key a message.
+    static func dtmf(button: KeypadEntry) -> RTVIMessageOutbound {
+        return RTVIMessageOutbound(
+            type: RTVIMessageOutbound.MessageType.DTMF,
+            data: .object(["button": .string(button.rawValue)])
+        )
+    }
 }

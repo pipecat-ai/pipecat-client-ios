@@ -26,10 +26,8 @@ final class RTVIDocumentTests: ClientTestCase {
 
     /// Client messages the client doesn't send, and why.
     static let notSent: [String: String] = [
-        "dtmf": "not supported yet",
         "raw-audio": "the transport carries the user's audio",
         "raw-audio-batch": "the transport carries the user's audio",
-        "send-file": "not supported yet",
         "ui-cancel-job-group": "iOS doesn't handle UI commands",
         "ui-event": "iOS doesn't handle UI commands",
         "ui-snapshot": "iOS doesn't handle UI commands",
@@ -142,6 +140,16 @@ final class RTVIDocumentTests: ClientTestCase {
         try transport.sendMessage(message: .clientReady())
         try client.sendClientMessage(msgType: "set-volume", data: .object(["level": .number(5)]))
         try client.sendText(content: "What's the weather?", options: SendTextOptions(runImmediately: true))
+        try await client.sendFile(
+            file: RTVIFile(data: Data("hello".utf8), format: "text/plain", name: "hello.txt"),
+            content: "What does it say?",
+            options: SendFileOptions(runImmediately: true, customOptions: .object(["detail": "high"]))
+        )
+        try await client.sendFile(
+            file: RTVIFile(url: "https://example.com/photo.png", format: "image/png"),
+            content: "And this?"
+        )
+        try client.sendDTMF(dtmf: "1#")
         try await receive(
             "llm-function-call-in-progress",
             data: .object([

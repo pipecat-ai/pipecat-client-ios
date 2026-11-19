@@ -8,6 +8,7 @@ final class TransportStub: Transport {
     var onMessage: ((RTVIMessageInbound) -> Void)?
 
     private(set) var sent: [RTVIMessageOutbound] = []
+    var maxMessageSize = 64 * 1024
     private var currentState: TransportState = .disconnected
 
     init() {}

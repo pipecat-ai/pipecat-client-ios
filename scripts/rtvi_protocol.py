@@ -68,6 +68,7 @@ HAND_WRITTEN = {
 TYPE_NAMES = {
     "ErrorData": "BotError",
     "ErrorResponseData": "ErrorResponse",
+    "File": "RTVIFile",
     "LLMFunctionCallStartMessageData": "LLMFunctionCallStartedData",
     "MetricsMessageData": "PipecatMetrics",
     "RawServerResponseData": "ClientMessageData",
@@ -329,12 +330,17 @@ class Generator:
         for prop, prop_schema in schema.get("properties", {}).items():
             swift, nullable = self.swift_type(prop_schema, name, prop, nested)
             optional = nullable or prop not in required
+            default = prop_schema.get("default")
             fields.append(
                 {
                     "key": prop,
                     "name": FIELD_NAMES.get(prop) or camel(prop),
                     "type": swift + ("?" if optional else ""),
                     "optional": optional,
+                    # An enum's default is the value it's sent with; other defaults are the server's.
+                    "default": f".{identifier(KEY_NAMES.get(default) or camel(default))}"
+                    if "enum" in prop_schema and isinstance(default, str)
+                    else "nil",
                     "description": prop_schema.get("description"),
                 }
             )
@@ -357,7 +363,7 @@ class Generator:
 
         # Required parameters first, so the optional ones can be left out.
         ordered = [f for f in fields if not f["optional"]] + [f for f in fields if f["optional"]]
-        parameters = [f"{f['name']}: {f['type']}" + (" = nil" if f["optional"] else "") for f in ordered]
+        parameters = [f"{f['name']}: {f['type']}" + (f" = {f['default']}" if f["optional"] else "") for f in ordered]
         signature = f"    {access} init({', '.join(parameters)}) {{"
         if access == "internal" and not any(f["optional"] for f in fields):
             # The synthesized initializer is the same.

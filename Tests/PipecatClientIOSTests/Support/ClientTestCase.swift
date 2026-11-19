@@ -14,10 +14,12 @@ class ClientTestCase: XCTestCase {
     }
 
     /// Starts over with a new client.
-    func setUpClient() {
+    func setUpClient(fileUploadEndpoint: URL? = nil) {
         transport = TransportStub()
         delegate = RecordingDelegate()
-        client = PipecatClient(options: PipecatClientOptions(transport: transport))
+        client = PipecatClient(
+            options: PipecatClientOptions(transport: transport, fileUploadEndpoint: fileUploadEndpoint)
+        )
         client.delegate = delegate
     }
 
@@ -35,8 +37,8 @@ class ClientTestCase: XCTestCase {
         try await receive(.object(message))
     }
 
-    func becomeReady() async throws {
-        try await receive("bot-ready", data: .object(["version": .string(PipecatClient.rtviProtocolVersion)]))
+    func becomeReady(version: String = PipecatClient.rtviProtocolVersion) async throws {
+        try await receive("bot-ready", data: .object(["version": .string(version)]))
     }
 
     /// Waits, for up to a second, for the delegate to be called, which some messages do from a task.
