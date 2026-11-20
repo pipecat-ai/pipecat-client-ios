@@ -25,7 +25,7 @@ public struct RTVIMessageInbound: Codable {
         /// STT transcript (both local and remote) flagged with partial final or sentence
         public static let TRANSCRIPT = "transcript"
 
-        /// STT transcript from the user
+        /// STT transcript from the user. Deprecated: use `USER_INPUT` or `STT_RAW_TEXT` instead.
         public static let USER_TRANSCRIPTION = "user-transcription"
 
         /// STT transcript from the bot
@@ -46,14 +46,14 @@ public struct RTVIMessageInbound: Codable {
         /// Pipecat metrics
         public static let METRICS = "metrics"
 
-        /// LLM transcript from the bot
+        /// LLM transcript from the bot. Deprecated: use `LLM_RAW_TEXT` instead.
         public static let BOT_LLM_TEXT = "bot-llm-text"
         /// LLM transcript from the bot has started
         public static let BOT_LLM_STARTED = "bot-llm-started"
         /// LLM transcript from the bot has stopped
         public static let BOT_LLM_STOPPED = "bot-llm-stopped"
 
-        /// TTS transcript from the bot
+        /// TTS transcript from the bot. Deprecated: use `TTS_RAW_TEXT` instead.
         public static let BOT_TTS_TEXT = "bot-tts-text"
         /// LLM transcript from the bot has started
         public static let BOT_TTS_STARTED = "bot-tts-started"
@@ -63,7 +63,16 @@ public struct RTVIMessageInbound: Codable {
         /// Server message
         public static let SERVER_MESSAGE = "server-message"
 
-        /// LLM
+        /// The LLM started calling a function.
+        public static let LLM_FUNCTION_CALL_STARTED = "llm-function-call-started"
+
+        /// The LLM is calling a function, with as much about the call as the bot reports.
+        public static let LLM_FUNCTION_CALL_IN_PROGRESS = "llm-function-call-in-progress"
+
+        /// A function call finished, or was cancelled.
+        public static let LLM_FUNCTION_CALL_STOPPED = "llm-function-call-stopped"
+
+        /// The LLM is calling a function. Deprecated: bots send `LLM_FUNCTION_CALL_IN_PROGRESS` instead.
         public static let LLM_FUNCTION_CALL = "llm-function-call"
 
         /// Context
@@ -74,6 +83,48 @@ public struct RTVIMessageInbound: Codable {
 
         // All bot output along with metadata like if it's spoken
         public static let BOT_OUTPUT = "bot-output"
+
+        /// The bot was interrupted and stopped what it was saying.
+        public static let BOT_INTERRUPTED = "bot-interrupted"
+
+        /// The bot stopped listening to the user.
+        public static let USER_MUTE_STARTED = "user-mute-started"
+
+        /// The bot listens to the user again.
+        public static let USER_MUTE_STOPPED = "user-mute-stopped"
+
+        /// What the user said or typed.
+        public static let USER_INPUT = "user-input"
+
+        /// The user's message as the bot's LLM receives it.
+        public static let USER_LLM_TEXT = "user-llm-text"
+
+        /// Voice activity detection heard the user start speaking.
+        public static let VAD_USER_STARTED_SPEAKING = "vad-user-started-speaking"
+
+        /// Voice activity detection heard the user stop speaking.
+        public static let VAD_USER_STOPPED_SPEAKING = "vad-user-stopped-speaking"
+
+        /// How loud the user's audio is, as the bot measures it.
+        public static let USER_AUDIO_LEVEL = "user-audio-level"
+
+        /// How loud the bot's audio is, as the bot measures it.
+        public static let BOT_AUDIO_LEVEL = "bot-audio-level"
+
+        /// A line of the bot's log.
+        public static let SYSTEM_LOG = "system-log"
+
+        /// The marker the bot's LLM put in a response.
+        public static let BOT_LLM_MARKER = "bot-llm-marker"
+
+        /// A transcription as the bot's STT produces it.
+        public static let STT_RAW_TEXT = "stt-raw-text"
+
+        /// Text as the bot's LLM streams it.
+        public static let LLM_RAW_TEXT = "llm-raw-text"
+
+        /// Text the bot's TTS speaks, as it speaks it.
+        public static let TTS_RAW_TEXT = "tts-raw-text"
     }
 
     public init(type: String?, data: String?) {
