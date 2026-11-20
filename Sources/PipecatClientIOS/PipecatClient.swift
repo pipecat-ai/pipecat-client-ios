@@ -1,4 +1,7 @@
 import Foundation
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 
 /// An RTVI client that connects to an RTVI backend and handles bidirectional audio and video communication.
 ///

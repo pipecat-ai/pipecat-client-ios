@@ -1,4 +1,7 @@
 import Foundation
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 
 /// Answers the requests `URLSession.shared` makes, while installed, and records them with their bodies.
 final class HTTPStub: URLProtocol {

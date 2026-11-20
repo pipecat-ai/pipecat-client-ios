@@ -92,7 +92,7 @@ final class RTVIDocumentTests: ClientTestCase {
         XCTAssertEqual(unexpected, [])
     }
 
-    func testTheMessageTypesTheClientKnowsAreTheDocuments() throws {
+    func testTheMessageTypesTheClientKnowsAreTheDocuments() async throws {
         let documented = Set(document.serverTypes + document.clientTypes)
         let known = try Self.knownMessageTypes()
         XCTAssertEqual(known.subtracting(documented).sorted(), Self.notInDocument.keys.sorted())
