@@ -254,7 +254,8 @@ open class PipecatClient {
     /// notifications about connection state changes, transcription events, bot responses,
     /// and other real-time events during the session.
     ///
-    /// - Note: The delegate is held with a weak reference to prevent retain cycles.
+    /// - Note: The delegate is held with a weak reference to prevent retain cycles. Its callbacks arrive on
+    ///   the main thread.
     private weak var _delegate: PipecatClientDelegate?
     public weak var delegate: PipecatClientDelegate? {
         get {
@@ -262,9 +263,12 @@ open class PipecatClient {
         }
         set {
             _delegate = newValue
-            self.transport.delegate = _delegate
+            self.transportDelegate.target = newValue
         }
     }
+
+    /// Receives the transport's events, which may come from its own threads, for the delegate.
+    private let transportDelegate = MainThreadDelegate()
 
     /// Initializes a new PipecatClient instance with the specified configuration options.
     ///
@@ -275,7 +279,17 @@ open class PipecatClient {
         self.options = options
         self.transport = options.transport
         self.messageDispatcher = MessageDispatcher.init(transport: transport)
-        self.transport.onMessage = self.onMessage
+        // A transport may receive messages on its own threads; they're handled on the main thread.
+        self.transport.onMessage = { [weak self] message in
+            if Thread.isMainThread {
+                self?.onMessage(message)
+            } else {
+                DispatchQueue.main.async {
+                    self?.onMessage(message)
+                }
+            }
+        }
+        self.transport.delegate = self.transportDelegate
         self.transport.initialize(options: options)
     }
 
@@ -843,7 +857,7 @@ open class PipecatClient {
     /// Use this to implement custom UI components for displaying participant media.
     ///
     /// - Returns: A `Tracks` object containing local and remote media track information, or `nil` if not connected.
-    var tracks: Tracks? {
+    public var tracks: Tracks? {
         return self.transport.tracks()
     }
 
