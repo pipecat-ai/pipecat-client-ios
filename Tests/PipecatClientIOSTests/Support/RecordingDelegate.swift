@@ -166,12 +166,12 @@ final class RecordingDelegate: PipecatClientDelegate {
         record("onVadUserStoppedSpeaking")
     }
 
-    func onUserAudioLevel(data: AudioLevelData) {
-        record("onUserAudioLevel", data)
+    func onServerUserAudioLevel(data: AudioLevelData) {
+        record("onServerUserAudioLevel", data)
     }
 
-    func onBotAudioLevel(data: AudioLevelData) {
-        record("onBotAudioLevel", data)
+    func onServerBotAudioLevel(data: AudioLevelData) {
+        record("onServerBotAudioLevel", data)
     }
 
     func onSystemLog(data: SystemLog) {

@@ -74,9 +74,27 @@ public protocol PipecatClientDelegate: AnyObject {
     /// Invoked when a screen share error occurs.
     func onScreenShareError(errorMessage: String)
 
+    /// Invoked regularly with how loud the user's microphone audio is, from 0 (quiet) to 1 (loud), as the transport
+    /// measures it on the device.
+    func onClientUserAudioLevel(level: Float)
+
+    /// Invoked regularly with how loud the bot's audio is, from 0 (quiet) to 1 (loud), as the transport measures it
+    /// on the device while playing it.
+    func onClientBotAudioLevel(level: Float)
+
+    @available(
+        *,
+        deprecated,
+        message: "Use onClientUserAudioLevel() instead. This method will be removed in a future version."
+    )
     /// Invoked regularly with the volume of the locally captured audio.
     func onLocalAudioLevel(level: Float)
 
+    @available(
+        *,
+        deprecated,
+        message: "Use onClientBotAudioLevel() instead. This method will be removed in a future version."
+    )
     /// Invoked regularly with the audio volume of each remote participant.
     func onRemoteAudioLevel(level: Float, participant: Participant)
 
@@ -201,14 +219,14 @@ public protocol PipecatClientDelegate: AnyObject {
     func onVadUserStoppedSpeaking()
 
     /// Invoked regularly with how loud the user's audio is, from 0 (quiet) to 1 (loud), as the bot received it.
-    /// Unlike `onLocalAudioLevel`, which the transport measures, the bot measures it. The bot sends it only when
-    /// enabled, with Pipecat's `user_audio_level_enabled` setting.
-    func onUserAudioLevel(data: AudioLevelData)
+    /// Unlike `onClientUserAudioLevel`, which the transport measures on the device, the bot measures it. The bot
+    /// sends it only when enabled, with Pipecat's `user_audio_level_enabled` setting.
+    func onServerUserAudioLevel(data: AudioLevelData)
 
     /// Invoked regularly with how loud the bot's audio is, from 0 (quiet) to 1 (loud), as the bot produced it.
-    /// Unlike `onRemoteAudioLevel`, which the transport measures, the bot measures it. The bot sends it only when
-    /// enabled, with Pipecat's `bot_audio_level_enabled` setting.
-    func onBotAudioLevel(data: AudioLevelData)
+    /// Unlike `onClientBotAudioLevel`, which the transport measures on the device, the bot measures it. The bot
+    /// sends it only when enabled, with Pipecat's `bot_audio_level_enabled` setting.
+    func onServerBotAudioLevel(data: AudioLevelData)
 
     /// Invoked with a line of the bot's log, for debugging. The bot sends it only when enabled, with Pipecat's
     /// `system_logs_enabled` setting.
@@ -258,7 +276,19 @@ extension PipecatClientDelegate {
     public func onScreenTrackStarted(track: MediaStreamTrack, participant: Participant?) {}
     public func onScreenTrackStopped(track: MediaStreamTrack, participant: Participant?) {}
     public func onScreenShareError(errorMessage: String) {}
+    public func onClientUserAudioLevel(level: Float) {}
+    public func onClientBotAudioLevel(level: Float) {}
+    @available(
+        *,
+        deprecated,
+        message: "Use onClientUserAudioLevel() instead. This method will be removed in a future version."
+    )
     public func onLocalAudioLevel(level: Float) {}
+    @available(
+        *,
+        deprecated,
+        message: "Use onClientBotAudioLevel() instead. This method will be removed in a future version."
+    )
     public func onRemoteAudioLevel(level: Float, participant: Participant) {}
     public func onBotStartedSpeaking() {}
     public func onBotStoppedSpeaking() {}
@@ -312,8 +342,8 @@ extension PipecatClientDelegate {
     public func onUserLlmText(data: UserLLMText) {}
     public func onVadUserStartedSpeaking() {}
     public func onVadUserStoppedSpeaking() {}
-    public func onUserAudioLevel(data: AudioLevelData) {}
-    public func onBotAudioLevel(data: AudioLevelData) {}
+    public func onServerUserAudioLevel(data: AudioLevelData) {}
+    public func onServerBotAudioLevel(data: AudioLevelData) {}
     public func onSystemLog(data: SystemLog) {}
     public func onBotLlmMarker(data: BotLLMMarkerData) {}
     public func onSttRawText(data: STTRawTextData) {}

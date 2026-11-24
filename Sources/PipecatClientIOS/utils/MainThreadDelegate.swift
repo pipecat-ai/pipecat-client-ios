@@ -118,12 +118,30 @@ final class MainThreadDelegate: PipecatClientDelegate {
         self.forward { $0.onScreenShareError(errorMessage: errorMessage) }
     }
 
-    func onLocalAudioLevel(level: Float) {
-        self.forward { $0.onLocalAudioLevel(level: level) }
+    func onClientUserAudioLevel(level: Float) {
+        self.forward { $0.onClientUserAudioLevel(level: level) }
     }
 
+    func onClientBotAudioLevel(level: Float) {
+        self.forward { $0.onClientBotAudioLevel(level: level) }
+    }
+
+    // Transports report the levels they measure as local and remote ones. The only remote participant they report
+    // is the bot.
+    @available(*, deprecated)
+    func onLocalAudioLevel(level: Float) {
+        self.forward {
+            $0.onClientUserAudioLevel(level: level)
+            $0.onLocalAudioLevel(level: level)
+        }
+    }
+
+    @available(*, deprecated)
     func onRemoteAudioLevel(level: Float, participant: Participant) {
-        self.forward { $0.onRemoteAudioLevel(level: level, participant: participant) }
+        self.forward {
+            $0.onClientBotAudioLevel(level: level)
+            $0.onRemoteAudioLevel(level: level, participant: participant)
+        }
     }
 
     func onBotStartedSpeaking() {
@@ -239,12 +257,12 @@ final class MainThreadDelegate: PipecatClientDelegate {
         self.forward { $0.onVadUserStoppedSpeaking() }
     }
 
-    func onUserAudioLevel(data: AudioLevelData) {
-        self.forward { $0.onUserAudioLevel(data: data) }
+    func onServerUserAudioLevel(data: AudioLevelData) {
+        self.forward { $0.onServerUserAudioLevel(data: data) }
     }
 
-    func onBotAudioLevel(data: AudioLevelData) {
-        self.forward { $0.onBotAudioLevel(data: data) }
+    func onServerBotAudioLevel(data: AudioLevelData) {
+        self.forward { $0.onServerBotAudioLevel(data: data) }
     }
 
     func onSystemLog(data: SystemLog) {

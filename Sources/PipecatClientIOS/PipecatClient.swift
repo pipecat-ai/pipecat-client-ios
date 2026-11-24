@@ -128,11 +128,11 @@ open class PipecatClient {
             self.delegate?.onVadUserStoppedSpeaking()
         case RTVIMessageInbound.MessageType.USER_AUDIO_LEVEL:
             if let level = try? JSONDecoder().decode(AudioLevelData.self, from: Data(voiceMessage.data!.utf8)) {
-                self.delegate?.onUserAudioLevel(data: level)
+                self.delegate?.onServerUserAudioLevel(data: level)
             }
         case RTVIMessageInbound.MessageType.BOT_AUDIO_LEVEL:
             if let level = try? JSONDecoder().decode(AudioLevelData.self, from: Data(voiceMessage.data!.utf8)) {
-                self.delegate?.onBotAudioLevel(data: level)
+                self.delegate?.onServerBotAudioLevel(data: level)
             }
         case RTVIMessageInbound.MessageType.SYSTEM_LOG:
             if let systemLog = try? JSONDecoder().decode(SystemLog.self, from: Data(voiceMessage.data!.utf8)) {

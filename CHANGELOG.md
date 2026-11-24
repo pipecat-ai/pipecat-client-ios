@@ -4,7 +4,8 @@
 
 - Added support for RTVI protocol 2.3.0: `PipecatClient.rtviProtocolVersion` is now `"2.3.0"`. The protocol's types are generated from Pipecat's AsyncAPI document of the protocol, vendored in `spec/`, by `scripts/rtvi_protocol.py`.
 - Function calls the bot reports with `llm-function-call-in-progress` now run the handler registered with `registerFunctionCallHandler()`, which answers the bot with its result. New delegate methods `onLLMFunctionCallStarted`, `onLLMFunctionCallInProgress` and `onLLMFunctionCallStopped` report a call's lifecycle.
-- New delegate methods for the rest of the bot's messages: `onBotInterrupted`, `onUserMuteStarted`, `onUserMuteStopped`, `onUserInput`, `onUserLlmText`, `onVadUserStartedSpeaking`, `onVadUserStoppedSpeaking`, `onUserAudioLevel`, `onBotAudioLevel`, `onSystemLog`, `onBotLlmMarker`, `onSttRawText`, `onLlmRawText` and `onTtsRawText`. Each has an empty default implementation.
+- New delegate methods for the rest of the bot's messages: `onBotInterrupted`, `onUserMuteStarted`, `onUserMuteStopped`, `onUserInput`, `onUserLlmText`, `onVadUserStartedSpeaking`, `onVadUserStoppedSpeaking`, `onServerUserAudioLevel`, `onServerBotAudioLevel`, `onSystemLog`, `onBotLlmMarker`, `onSttRawText`, `onLlmRawText` and `onTtsRawText`. Each has an empty default implementation.
+- `onClientUserAudioLevel` and `onClientBotAudioLevel` report how loud the user's and the bot's audio are, as the transport measures them on the device. Their names set them apart from `onServerUserAudioLevel` and `onServerBotAudioLevel`, which report the levels the bot measures.
 - Expressive conversation (alpha): `onBotExpression` reports a sound, such as a laugh, or a pause the bot performed, and `onBotDeliveryUpdated` reports when the bot's delivery, such as `["warm"]`, changes. Both are derived from `bot-output`.
 - `BotOutputData` has `outputType`, which bots older than 2.3.0 fill in through `aggregated_by`, and `delivery`.
 - `BotReadyData` has `capabilities`, what the bot does in the session (RTVI 2.2.0+), and `PipecatMetrics` exposes all of its metrics: `processing`, `ttfb`, `ttfa`, `ttfat`, `tokens`, `sttUsage` and `characters`.
@@ -23,6 +24,7 @@
 - `onBotLlmText` is deprecated: use `onBotOutput` to show the bot's text, or `onLlmRawText` to inspect what the LLM produced.
 - `onBotTtsText` is deprecated: use `onBotOutput` to show the bot's text, or `onTtsRawText` to inspect what the TTS produced.
 - `onLLMFunctionCall` is deprecated: use `registerFunctionCallHandler()` to answer a function call, or `onLLMFunctionCallInProgress` to follow it. Only bots that send the deprecated `llm-function-call` invoke it.
+- `onLocalAudioLevel` and `onRemoteAudioLevel` are deprecated: use `onClientUserAudioLevel` and `onClientBotAudioLevel` instead. They're still called, after the new ones.
 - `BotOutputData.aggregatedBy` and `BotOutputData.AggregationType` are deprecated in favour of `outputType` and `BotOutputType`, and `init(text:spoken:aggregatedBy:...)` in favour of `init(text:outputType:...)`.
 
 ### Removed

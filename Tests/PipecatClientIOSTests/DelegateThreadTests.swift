@@ -22,8 +22,8 @@ private final class ThreadRecordingDelegate: PipecatClientDelegate {
         record("onTransportStateChanged")
     }
 
-    func onLocalAudioLevel(level: Float) {
-        record("onLocalAudioLevel")
+    func onClientUserAudioLevel(level: Float) {
+        record("onClientUserAudioLevel")
     }
 
     func onBotStartedSpeaking() {
@@ -52,10 +52,10 @@ final class DelegateThreadTests: ClientTestCase {
         let transportDelegate = transport.delegate
         DispatchQueue.global()
             .async {
-                transportDelegate?.onLocalAudioLevel(level: 0.5)
+                transportDelegate?.onClientUserAudioLevel(level: 0.5)
             }
         try await waitForCalls(count: 1)
-        XCTAssertEqual(threadDelegate.calls.first?.name, "onLocalAudioLevel")
+        XCTAssertEqual(threadDelegate.calls.first?.name, "onClientUserAudioLevel")
         XCTAssertEqual(threadDelegate.calls.first?.onMain, true)
     }
 
