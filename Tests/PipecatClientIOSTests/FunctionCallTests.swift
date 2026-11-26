@@ -38,13 +38,45 @@ final class FunctionCallTests: ClientTestCase {
         )
     }
 
-    func testAHandlerAnswersACallInProgressWithoutArguments() async throws {
+    func testNoHandlerRunsForACallWithoutItsArguments() async throws {
         try await receive(
             "llm-function-call-in-progress",
             data: .object(["tool_call_id": "call_1", "function_name": "get_weather"])
         )
+        XCTAssertEqual(handled.count, 0)
+        XCTAssertEqual(results, [])
+        XCTAssertEqual(delegate.calls.map(\.name), ["onLLMFunctionCallInProgress"])
+    }
+
+    func testACallReportedWithBothMessagesIsAnsweredOnce() async throws {
+        try await receive(
+            "llm-function-call-in-progress",
+            data: .object([
+                "tool_call_id": "call_1", "function_name": "get_weather", "arguments": .object(["city": "Lisbon"]),
+            ])
+        )
+        try await receive(
+            "llm-function-call",
+            data: .object([
+                "function_name": "get_weather", "tool_call_id": "call_1", "args": .object(["city": "Lisbon"]),
+            ])
+        )
         try await waitForSent(count: 1)
-        XCTAssertEqual(results.map { $0["arguments"] }, [.object([:])])
+        try await Task.sleep(nanoseconds: 50_000_000)
+        XCTAssertEqual(handled.map(\.toolCallID), ["call_1"])
+        XCTAssertEqual(results.count, 1)
+    }
+
+    func testACallAfterADisconnectIsAnsweredAgain() async throws {
+        let call: JSON = .object([
+            "tool_call_id": "call_1", "function_name": "get_weather", "arguments": .object(["city": "Lisbon"]),
+        ])
+        try await receive("llm-function-call-in-progress", data: call)
+        try await waitForSent(count: 1)
+        try await client.disconnect()
+        try await receive("llm-function-call-in-progress", data: call)
+        try await waitForSent(count: 2)
+        XCTAssertEqual(handled.map(\.toolCallID), ["call_1", "call_1"])
     }
 
     func testNoHandlerRunsForACallWithoutItsFunctionName() async throws {

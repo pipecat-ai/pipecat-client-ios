@@ -21,6 +21,10 @@ open class PipecatClient {
 
     private var functionCallCallbacks: [String: FunctionCallCallback] = [:]
 
+    /// The calls a handler has run for, by tool call ID. A bot that still sends the deprecated
+    /// `llm-function-call` reports each call twice, also with `llm-function-call-in-progress`.
+    private var handledToolCallIDs: Set<String> = []
+
     /// The delivery of the words the bot is speaking, or `nil` when it isn't speaking.
     private var botDelivery: [String]?
 
@@ -178,15 +182,21 @@ open class PipecatClient {
         case RTVIMessageInbound.MessageType.LLM_FUNCTION_CALL_IN_PROGRESS:
             if let inProgressData = try? JSONDecoder()
                 .decode(LLMFunctionCallInProgressData.self, from: Data(voiceMessage.data!.utf8)) {
-                // A handler can only run when the bot reports which function it calls.
+                // A handler can only run when the bot reports which function it calls, and with what arguments.
                 if let functionName = inProgressData.functionName {
-                    self.runFunctionCallHandler(
-                        functionCallData: LLMFunctionCallData(
-                            functionName: functionName,
-                            toolCallID: inProgressData.toolCallID,
-                            args: inProgressData.arguments ?? .object([:])
+                    if let arguments = inProgressData.arguments {
+                        self.runFunctionCallHandler(
+                            functionCallData: LLMFunctionCallData(
+                                functionName: functionName,
+                                toolCallID: inProgressData.toolCallID,
+                                args: arguments
+                            )
                         )
-                    )
+                    } else if self.functionCallCallbacks[functionName] != nil {
+                        Logger.shared.warn(
+                            "[Pipecat Client] Not running the handler for \(functionName): the bot didn't report the call's arguments. Its function call report level for \(functionName) must be ARGUMENTS or FULL."
+                        )
+                    }
                 }
                 self.delegate?.onLLMFunctionCallInProgress(data: inProgressData)
             }
@@ -219,7 +229,9 @@ open class PipecatClient {
 
     /// Runs the handler registered for the function the bot calls, which answers the bot with its result.
     private func runFunctionCallHandler(functionCallData: LLMFunctionCallData) {
-        guard let registeredCallback = self.functionCallCallbacks[functionCallData.functionName] else {
+        guard let registeredCallback = self.functionCallCallbacks[functionCallData.functionName],
+            self.handledToolCallIDs.insert(functionCallData.toolCallID).inserted
+        else {
             return
         }
         Task {
@@ -580,6 +592,7 @@ open class PipecatClient {
         self.transport.setState(state: .disconnecting)
         self.disconnectRequested = true
         self.setBotDelivery(nil)
+        self.handledToolCallIDs.removeAll()
         self.botVersion = [0, 0, 0]
         self.startBotParams = nil
         self.advertisedFileUploadURL = nil
@@ -1200,7 +1213,8 @@ open class PipecatClient {
     /// When the bot calls a function with the specified name, the callback runs with the call's
     /// arguments, and the result it's given is sent back to the bot. The bot reports a call's function
     /// name and arguments only when its report level for the function allows it: in Pipecat, at least
-    /// `RTVIFunctionCallReportLevel.ARGUMENTS` in `RTVIObserverParams.function_call_report_level`.
+    /// `RTVIFunctionCallReportLevel.ARGUMENTS` in `RTVIObserverParams.function_call_report_level`. A call the bot
+    /// reports without its arguments doesn't run the callback, and logs a warning.
     ///
     /// - Parameters:
     ///   - functionName: The name of the function to handle.
