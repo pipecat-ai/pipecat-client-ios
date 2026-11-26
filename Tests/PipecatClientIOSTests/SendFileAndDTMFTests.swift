@@ -100,6 +100,24 @@ final class SendFileAndDTMFTests: ClientTestCase {
         )
     }
 
+    func testAnUploadedFileNameOrFormatCannotAddHeaderLines() async throws {
+        setUpClient(fileUploadEndpoint: URL(string: "https://bot.example.com/files"))
+        transport.maxMessageSize = 300
+        HTTPStub.install(["https://bot.example.com/files": uploaded])
+        try await becomeReady()
+        let file = RTVIFile(
+            data: Data(repeating: 7, count: 300),
+            format: "image/png\r\nX-Injected: 1",
+            name: "photo.png\r\nX-Injected: 1"
+        )
+        try await client.sendFile(file: file, content: "What's this?")
+
+        let body = String(decoding: try XCTUnwrap(HTTPStub.requests.first).body, as: UTF8.self)
+        XCTAssertTrue(body.contains(#"filename="photo.pngX-Injected: 1""#))
+        XCTAssertTrue(body.contains("Content-Type: image/pngX-Injected: 1\r\n"))
+        XCTAssertFalse(body.contains("\r\nX-Injected"))
+    }
+
     func testTheUploadRouteTheStartBotResponseAdvertisesIsUsed() async throws {
         setUpClient(fileUploadEndpoint: URL(string: "https://elsewhere.example.com/files"))
         transport.maxMessageSize = 300

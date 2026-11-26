@@ -1127,12 +1127,14 @@ open class PipecatClient {
         }
         let boundary = "pipecat-\(UUID().uuidString)"
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-        let filename = (name ?? "uploaded_file").replacingOccurrences(of: "\"", with: "'")
+        // A line break would end the part's header line, so neither the name nor the format may hold one.
+        let headerValue = { (value: String) in value.components(separatedBy: .newlines).joined() }
+        let filename = headerValue(name ?? "uploaded_file").replacingOccurrences(of: "\"", with: "'")
         var body = Data(
             """
             --\(boundary)\r
             Content-Disposition: form-data; name="file"; filename="\(filename)"\r
-            Content-Type: \(format)\r
+            Content-Type: \(headerValue(format))\r
             \r
 
             """.utf8

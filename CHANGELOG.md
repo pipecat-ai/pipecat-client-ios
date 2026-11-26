@@ -35,6 +35,7 @@
 
 - `PipecatClientDelegate` callbacks now arrive on the main thread. A transport that reports events or messages from its own threads, as SmallWebRTC's WebRTC does, could call the delegate off the main thread, and an app updating its UI there could crash.
 - `PipecatClient.tracks` is public, as its documentation describes.
+- A line break in the name or the format of a file `sendFile` uploads no longer ends up in the upload's headers.
 
 # 1.3.0 — 2026-07-02
 
