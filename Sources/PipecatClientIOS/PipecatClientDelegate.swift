@@ -74,9 +74,27 @@ public protocol PipecatClientDelegate: AnyObject {
     /// Invoked when a screen share error occurs.
     func onScreenShareError(errorMessage: String)
 
+    /// Invoked regularly with how loud the user's microphone audio is, from 0 (quiet) to 1 (loud), as the transport
+    /// measures it on the device.
+    func onClientUserAudioLevel(level: Float)
+
+    /// Invoked regularly with how loud the bot's audio is, from 0 (quiet) to 1 (loud), as the transport measures it
+    /// on the device while playing it.
+    func onClientBotAudioLevel(level: Float)
+
+    @available(
+        *,
+        deprecated,
+        message: "Use onClientUserAudioLevel() instead. This method will be removed in a future version."
+    )
     /// Invoked regularly with the volume of the locally captured audio.
     func onLocalAudioLevel(level: Float)
 
+    @available(
+        *,
+        deprecated,
+        message: "Use onClientBotAudioLevel() instead. This method will be removed in a future version."
+    )
     /// Invoked regularly with the audio volume of each remote participant.
     func onRemoteAudioLevel(level: Float, participant: Participant)
 
@@ -92,6 +110,12 @@ public protocol PipecatClientDelegate: AnyObject {
     /// Invoked when the local user stops talking.
     func onUserStoppedSpeaking()
 
+    @available(
+        *,
+        deprecated,
+        message:
+            "Use onUserInput() to show what the user said, or onSttRawText() to inspect what the STT produced. This method will be removed in a future version."
+    )
     /// Invoked when user transcript data is available.
     func onUserTranscript(data: Transcript)
 
@@ -99,6 +123,12 @@ public protocol PipecatClientDelegate: AnyObject {
     /// Invoked when bot transcript data is available.
     func onBotTranscript(data: BotLLMText)
 
+    @available(
+        *,
+        deprecated,
+        message:
+            "Use onBotOutput() to show the bot's text, or onLlmRawText() to inspect what the LLM produced. This method will be removed in a future version."
+    )
     /// Invoked when received the bot transcription from the LLM.
     func onBotLlmText(data: BotLLMText)
 
@@ -108,6 +138,12 @@ public protocol PipecatClientDelegate: AnyObject {
     /// Invoked when the bot LLM text has stopped.
     func onBotLlmStopped()
 
+    @available(
+        *,
+        deprecated,
+        message:
+            "Use onBotOutput() to show the bot's text, or onTtsRawText() to inspect what the TTS produced. This method will be removed in a future version."
+    )
     /// Invoked when text is spoken by the bot.
     func onBotTtsText(data: BotTTSText)
 
@@ -120,11 +156,99 @@ public protocol PipecatClientDelegate: AnyObject {
     /// Invoked when we receive a bot LLM search response.
     func onBotLlmSearchResponse(data: BotLLMSearchResponseData)
 
+    /// Invoked when the LLM starts calling a function. It carries the function's name when the bot reports it.
+    func onLLMFunctionCallStarted(data: LLMFunctionCallStartedData)
+
+    /// Invoked when the LLM is calling a function. How much it carries depends on the bot's report level for
+    /// the function: only the call's id, or also the function's name and arguments.
+    ///
+    /// To run the function in the app and answer the bot with its result, register a handler with
+    /// `PipecatClient.registerFunctionCallHandler(functionName:callback:)`.
+    func onLLMFunctionCallInProgress(data: LLMFunctionCallInProgressData)
+
+    /// Invoked when a function call finishes, or is cancelled.
+    func onLLMFunctionCallStopped(data: LLMFunctionCallStoppedData)
+
+    @available(
+        *,
+        deprecated,
+        message:
+            "Use registerFunctionCallHandler() or onLLMFunctionCallInProgress() instead. This method will be removed in a future version."
+    )
     /// Invoked when the LLM attempts to invoke a function. The provided callback must be provided with a return value.
+    ///
+    /// Only bots that send the deprecated `llm-function-call` message invoke it.
     func onLLMFunctionCall(functionCallData: LLMFunctionCallData, onResult: ((Value) async -> Void)) async
 
     /// Invoked when the bot has a new output data
     func onBotOutput(data: BotOutputData)
+
+    /// Invoked when the bot performs a sound, such as a laugh, or a pause, in expressive conversation
+    /// (RTVI 2.3.0+). Derived from `onBotOutput`.
+    func onBotExpression(data: BotExpressionData)
+
+    /// Invoked when the bot's delivery changes, in expressive conversation (RTVI 2.3.0+). Derived from
+    /// `onBotOutput`: invoked only when it changes, and with a `nil` delivery once the bot stops speaking.
+    func onBotDeliveryUpdated(data: BotDeliveryUpdatedData)
+
+    /// Invoked when the bot was interrupted and stopped what it was saying. The bot's text that hadn't been
+    /// spoken yet won't be.
+    func onBotInterrupted()
+
+    /// Invoked when the bot stops listening to the user, for example while it says something that must not be
+    /// interrupted.
+    func onUserMuteStarted()
+
+    /// Invoked when the bot listens to the user again.
+    func onUserMuteStopped()
+
+    /// Invoked with what the user said or typed: a transcription of their speech, text the client sent, or a
+    /// short acknowledgment the user said while the bot talks.
+    func onUserInput(data: UserInputData)
+
+    /// Invoked with the user's message as the bot's LLM receives it.
+    func onUserLlmText(data: UserLLMText)
+
+    /// Invoked when voice activity detection hears the user start speaking. It reacts to any voice, sooner than
+    /// `onUserStartedSpeaking`, which comes when the bot decides the user's turn started. The bot sends it only
+    /// when enabled, with Pipecat's `vad_user_speaking_enabled` setting.
+    func onVadUserStartedSpeaking()
+
+    /// Invoked when voice activity detection hears the user stop speaking. The bot sends it only when enabled,
+    /// with Pipecat's `vad_user_speaking_enabled` setting.
+    func onVadUserStoppedSpeaking()
+
+    /// Invoked regularly with how loud the user's audio is, from 0 (quiet) to 1 (loud), as the bot received it.
+    /// Unlike `onClientUserAudioLevel`, which the transport measures on the device, the bot measures it. The bot
+    /// sends it only when enabled, with Pipecat's `user_audio_level_enabled` setting.
+    func onServerUserAudioLevel(data: AudioLevelData)
+
+    /// Invoked regularly with how loud the bot's audio is, from 0 (quiet) to 1 (loud), as the bot produced it.
+    /// Unlike `onClientBotAudioLevel`, which the transport measures on the device, the bot measures it. The bot
+    /// sends it only when enabled, with Pipecat's `bot_audio_level_enabled` setting.
+    func onServerBotAudioLevel(data: AudioLevelData)
+
+    /// Invoked with a line of the bot's log, for debugging. The bot sends it only when enabled, with Pipecat's
+    /// `system_logs_enabled` setting.
+    func onSystemLog(data: SystemLog)
+
+    /// Invoked with the marker the bot's LLM put in a response, outside the text it speaks, such as one saying
+    /// whether the user's turn was complete. The bot sends it only when enabled, with Pipecat's
+    /// `bot_llm_marker_enabled` setting.
+    func onBotLlmMarker(data: BotLLMMarkerData)
+
+    /// Invoked with a transcription of the user's speech as the bot's STT produces it, including interim
+    /// transcriptions that may still change (RTVI 2.2.0+). The bot sends it only when enabled, with Pipecat's
+    /// `stt_raw_text_enabled` setting.
+    func onSttRawText(data: STTRawTextData)
+
+    /// Invoked with text exactly as the bot's LLM streams it, a chunk at a time (RTVI 2.2.0+). The bot sends it
+    /// only when enabled, with Pipecat's `llm_raw_text_enabled` setting.
+    func onLlmRawText(data: LLMRawText)
+
+    /// Invoked with text the bot's TTS speaks, as it speaks it (RTVI 2.2.0+). The bot sends it only when
+    /// enabled, with Pipecat's `tts_raw_text_enabled` setting.
+    func onTtsRawText(data: TTSRawText)
 }
 
 extension PipecatClientDelegate {
@@ -152,22 +276,77 @@ extension PipecatClientDelegate {
     public func onScreenTrackStarted(track: MediaStreamTrack, participant: Participant?) {}
     public func onScreenTrackStopped(track: MediaStreamTrack, participant: Participant?) {}
     public func onScreenShareError(errorMessage: String) {}
+    public func onClientUserAudioLevel(level: Float) {}
+    public func onClientBotAudioLevel(level: Float) {}
+    @available(
+        *,
+        deprecated,
+        message: "Use onClientUserAudioLevel() instead. This method will be removed in a future version."
+    )
     public func onLocalAudioLevel(level: Float) {}
+    @available(
+        *,
+        deprecated,
+        message: "Use onClientBotAudioLevel() instead. This method will be removed in a future version."
+    )
     public func onRemoteAudioLevel(level: Float, participant: Participant) {}
     public func onBotStartedSpeaking() {}
     public func onBotStoppedSpeaking() {}
     public func onUserStartedSpeaking() {}
     public func onUserStoppedSpeaking() {}
+    @available(
+        *,
+        deprecated,
+        message:
+            "Use onUserInput() to show what the user said, or onSttRawText() to inspect what the STT produced. This method will be removed in a future version."
+    )
     public func onUserTranscript(data: Transcript) {}
     @available(*, deprecated, message: "Use onBotOutput() instead. This method will be removed in a future version.")
     public func onBotTranscript(data: BotLLMText) {}
+    @available(
+        *,
+        deprecated,
+        message:
+            "Use onBotOutput() to show the bot's text, or onLlmRawText() to inspect what the LLM produced. This method will be removed in a future version."
+    )
     public func onBotLlmText(data: BotLLMText) {}
     public func onBotLlmStarted() {}
     public func onBotLlmStopped() {}
+    @available(
+        *,
+        deprecated,
+        message:
+            "Use onBotOutput() to show the bot's text, or onTtsRawText() to inspect what the TTS produced. This method will be removed in a future version."
+    )
     public func onBotTtsText(data: BotTTSText) {}
     public func onBotTtsStarted() {}
     public func onBotTtsStopped() {}
     public func onBotLlmSearchResponse(data: BotLLMSearchResponseData) {}
+    public func onLLMFunctionCallStarted(data: LLMFunctionCallStartedData) {}
+    public func onLLMFunctionCallInProgress(data: LLMFunctionCallInProgressData) {}
+    public func onLLMFunctionCallStopped(data: LLMFunctionCallStoppedData) {}
+    @available(
+        *,
+        deprecated,
+        message:
+            "Use registerFunctionCallHandler() or onLLMFunctionCallInProgress() instead. This method will be removed in a future version."
+    )
     public func onLLMFunctionCall(functionCallData: LLMFunctionCallData, onResult: ((Value) async -> Void)) async {}
     public func onBotOutput(data: BotOutputData) {}
+    public func onBotExpression(data: BotExpressionData) {}
+    public func onBotDeliveryUpdated(data: BotDeliveryUpdatedData) {}
+    public func onBotInterrupted() {}
+    public func onUserMuteStarted() {}
+    public func onUserMuteStopped() {}
+    public func onUserInput(data: UserInputData) {}
+    public func onUserLlmText(data: UserLLMText) {}
+    public func onVadUserStartedSpeaking() {}
+    public func onVadUserStoppedSpeaking() {}
+    public func onServerUserAudioLevel(data: AudioLevelData) {}
+    public func onServerBotAudioLevel(data: AudioLevelData) {}
+    public func onSystemLog(data: SystemLog) {}
+    public func onBotLlmMarker(data: BotLLMMarkerData) {}
+    public func onSttRawText(data: STTRawTextData) {}
+    public func onLlmRawText(data: LLMRawText) {}
+    public func onTtsRawText(data: TTSRawText) {}
 }

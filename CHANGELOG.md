@@ -1,3 +1,42 @@
+# Unreleased
+
+### Added
+
+- Added support for RTVI protocol 2.3.0: `PipecatClient.rtviProtocolVersion` is now `"2.3.0"`. The protocol's types are generated from Pipecat's AsyncAPI document of the protocol, vendored in `spec/`, by `scripts/rtvi_protocol.py`.
+- Function calls the bot reports with `llm-function-call-in-progress` now run the handler registered with `registerFunctionCallHandler()`, which answers the bot with its result. A call reported without its arguments, below the `ARGUMENTS` report level, logs a warning instead, and a call the bot also reports with the deprecated `llm-function-call` is answered once. New delegate methods `onLLMFunctionCallStarted`, `onLLMFunctionCallInProgress` and `onLLMFunctionCallStopped` report a call's lifecycle.
+- New delegate methods for the rest of the bot's messages: `onBotInterrupted`, `onUserMuteStarted`, `onUserMuteStopped`, `onUserInput`, `onUserLlmText`, `onVadUserStartedSpeaking`, `onVadUserStoppedSpeaking`, `onServerUserAudioLevel`, `onServerBotAudioLevel`, `onSystemLog`, `onBotLlmMarker`, `onSttRawText`, `onLlmRawText` and `onTtsRawText`. Each has an empty default implementation.
+- `onClientUserAudioLevel` and `onClientBotAudioLevel` report how loud the user's and the bot's audio are, as the transport measures them on the device. Their names set them apart from `onServerUserAudioLevel` and `onServerBotAudioLevel`, which report the levels the bot measures.
+- Expressive conversation (alpha): `onBotExpression` reports a sound, such as a laugh, or a pause the bot performed, and `onBotDeliveryUpdated` reports when the bot's delivery, such as `["warm"]`, changes. Both are derived from `bot-output`.
+- `BotOutputData` has `outputType`, which bots older than 2.3.0 fill in through `aggregated_by`, and `delivery`.
+- `BotReadyData` has `capabilities`, what the bot does in the session (RTVI 2.2.0+), and `PipecatMetrics` exposes all of its metrics: `processing`, `ttfb`, `ttfa`, `ttfat`, `tokens`, `sttUsage` and `characters`.
+- Added `sendFile(file:content:options:)`, which sends the bot's LLM a file with text that goes with it (RTVI 2.2.0+). Build the file with `RTVIFile(data:format:name:)` or `RTVIFile(url:format:name:)`. A file too large for the transport to send in a message is uploaded first, to the `fileUploadUrl` the start-bot response advertises or else the new `PipecatClientOptions.fileUploadEndpoint`, and sent by its URL. Transports report how large a message they send with the new `Transport.maxMessageSize`, 64 KiB by default.
+- Added `sendDTMF(dtmf:)`, which sends DTMF keypresses such as `"123#"` (RTVI 2.0.0+).
+
+### Changed
+
+- ⚠️ `BotOutputType` (formerly `BotOutputData.AggregationType`) and `BotOutputData.SpokenStatus` take values the client doesn't name, so a `bot-output` with an output type of the bot's own, such as `"code"`, now reaches `onBotOutput`. They are structs of constants instead of enums: a `switch` over them needs a `default` case.
+- ⚠️ `BotError.fatal` is a `Bool` instead of a `Bool?`, as the protocol always sends it.
+- `BotLLMText` and `BotTTSText` are aliases of `TextMessageData`, the data every text message carries, as are the new `UserLLMText`, `LLMRawText`, `TTSRawText` and `SystemLog`. `PipecatMetricsData` is an alias of `ProcessingMetricsData`. They have the same fields as before.
+
+### Deprecated
+
+- `onUserTranscript` is deprecated: use `onUserInput` to show what the user said, or `onSttRawText` to inspect what the STT produced.
+- `onBotLlmText` is deprecated: use `onBotOutput` to show the bot's text, or `onLlmRawText` to inspect what the LLM produced.
+- `onBotTtsText` is deprecated: use `onBotOutput` to show the bot's text, or `onTtsRawText` to inspect what the TTS produced.
+- `onLLMFunctionCall` is deprecated: use `registerFunctionCallHandler()` to answer a function call, or `onLLMFunctionCallInProgress` to follow it. Only bots that send the deprecated `llm-function-call` invoke it.
+- `onLocalAudioLevel` and `onRemoteAudioLevel` are deprecated: use `onClientUserAudioLevel` and `onClientBotAudioLevel` instead. They're still called, after the new ones.
+- `BotOutputData.aggregatedBy` and `BotOutputData.AggregationType` are deprecated in favour of `outputType` and `BotOutputType`, and `init(text:spoken:aggregatedBy:...)` in favour of `init(text:outputType:...)`.
+
+### Removed
+
+- Removed `LLMFunctionCallResult`, which apps couldn't create.
+
+### Fixed
+
+- `PipecatClientDelegate` callbacks now arrive on the main thread. A transport that reports events or messages from its own threads, as SmallWebRTC's WebRTC does, could call the delegate off the main thread, and an app updating its UI there could crash.
+- `PipecatClient.tracks` is public, as its documentation describes.
+- A line break in the name or the format of a file `sendFile` uploads no longer ends up in the upload's headers.
+
 # 1.3.0 — 2026-07-02
 
 ### Added

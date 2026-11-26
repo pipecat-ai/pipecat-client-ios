@@ -1,5 +1,7 @@
 import Foundation
+#if canImport(os)
 import os.log
+#endif
 
 /// Log level used for logging by the framework.
 public enum LogLevel: UInt8 {
@@ -17,6 +19,7 @@ public enum LogLevel: UInt8 {
     case trace = 5
 }
 
+#if canImport(os)
 extension LogLevel {
     fileprivate var logType: OSLogType? {
         switch self {
@@ -35,6 +38,7 @@ extension LogLevel {
         }
     }
 }
+#endif
 
 /// Sets the log level for logs produce by the framework.
 public func setLogLevel(_ logLevel: LogLevel) {
@@ -44,7 +48,9 @@ public func setLogLevel(_ logLevel: LogLevel) {
 internal final class Logger {
     fileprivate var level: LogLevel = .warn
 
+    #if canImport(os)
     fileprivate let osLog: OSLog = .init(subsystem: "co.daily.rtvi", category: "main")
+    #endif
 
     internal static let shared: Logger = .init()
 
@@ -87,6 +93,7 @@ internal final class Logger {
             return
         }
 
+        #if canImport(os)
         let log = self.osLog
 
         // The following force-unwrap is okay since we check for `.off` above:
@@ -94,5 +101,9 @@ internal final class Logger {
         let type = level.logType!
 
         os_log("%@", log: log, type: type, message())
+        #else
+        // Platforms without `os`, such as Linux.
+        FileHandle.standardError.write(Data("[PipecatClientIOS] [\(level)] \(message())\n".utf8))
+        #endif
     }
 }

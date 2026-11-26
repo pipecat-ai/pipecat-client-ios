@@ -1,7 +1,4 @@
 import Foundation
 
-/// Metrics data received from a Pipecat instance.
-public struct PipecatMetricsData: Codable {
-    let processor: String
-    let value: Double
-}
+/// One service's measure in a metrics message.
+public typealias PipecatMetricsData = ProcessingMetricsData

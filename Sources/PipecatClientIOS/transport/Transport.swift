@@ -26,11 +26,16 @@ public protocol Transport {
     func state() -> TransportState
     func setState(state: TransportState)
     func tracks() -> Tracks?
+    /// The largest message, in bytes, the transport sends to the bot. `PipecatClient.sendFile` uploads a file
+    /// whose message is larger.
+    var maxMessageSize: Int { get }
     func transformStartBotResultToConnectionParams(startBotParams: APIRequest, startBotResult: StartBotResult) throws
         -> TransportConnectionParams
 }
 
 extension Transport {
+    public var maxMessageSize: Int { 64 * 1024 }
+
     public func transformStartBotResultToConnectionParams(startBotParams: APIRequest, startBotResult: StartBotResult)
         throws
         -> TransportConnectionParams {
