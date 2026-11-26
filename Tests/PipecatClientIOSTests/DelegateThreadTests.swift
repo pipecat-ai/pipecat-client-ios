@@ -29,6 +29,10 @@ private final class ThreadRecordingDelegate: PipecatClientDelegate {
     func onBotStartedSpeaking() {
         record("onBotStartedSpeaking")
     }
+
+    func onBotDeliveryUpdated(data: BotDeliveryUpdatedData) {
+        record("onBotDeliveryUpdated")
+    }
 }
 
 @MainActor
@@ -77,4 +81,19 @@ final class DelegateThreadTests: ClientTestCase {
         XCTAssertEqual(threadDelegate.calls.first?.onMain, true)
     }
 
+    func testDisconnectingFromAnotherThreadReachesTheDelegateOnTheMainThread() async throws {
+        try await receive(
+            "bot-output",
+            data: .object(["text": "Hi", "output_type": "word", "delivery": .array(["warm"])])
+        )
+        let client = self.client!
+        let disconnected = expectation(description: "disconnected")
+        DispatchQueue.global()
+            .async {
+                Task { await client.disconnect { _ in disconnected.fulfill() } }
+            }
+        await fulfillment(of: [disconnected], timeout: 1)
+        XCTAssertEqual(threadDelegate.calls.map(\.name), ["onBotDeliveryUpdated", "onBotDeliveryUpdated"])
+        XCTAssertEqual(threadDelegate.calls.map(\.onMain), [true, true])
+    }
 }
