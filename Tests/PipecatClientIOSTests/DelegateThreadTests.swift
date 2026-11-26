@@ -66,13 +66,15 @@ final class DelegateThreadTests: ClientTestCase {
     }
 
     func testMessageFromAnotherThreadReachesTheDelegateOnTheMainThread() async throws {
-        let transport = self.transport!
+        let onMessage = try XCTUnwrap(transport.onMessage)
+        let message = RTVIMessageInbound(type: "bot-started-speaking", data: nil)
         DispatchQueue.global()
             .async {
-                try? transport.receive(.object(["label": "rtvi-ai", "type": "bot-started-speaking"]))
+                onMessage(message)
             }
         try await waitForCalls(count: 1)
         XCTAssertEqual(threadDelegate.calls.first?.name, "onBotStartedSpeaking")
         XCTAssertEqual(threadDelegate.calls.first?.onMain, true)
     }
+
 }

@@ -45,14 +45,14 @@ final class AudioLevelTests: ClientTestCase {
     }
 
     @available(*, deprecated)
-    func testTheTransportsLocalLevelReachesTheClientUserAudioLevel() {
+    func testTheTransportsLocalLevelReachesTheClientUserAudioLevel() async {
         reportLocalLevel(0.4)
         XCTAssertEqual(levelDelegate.levels.map(\.name), ["onClientUserAudioLevel", "onLocalAudioLevel"])
         XCTAssertEqual(levelDelegate.levels.map(\.level), [0.4, 0.4])
     }
 
     @available(*, deprecated)
-    func testTheTransportsRemoteLevelReachesTheClientBotAudioLevel() {
+    func testTheTransportsRemoteLevelReachesTheClientBotAudioLevel() async {
         reportRemoteLevel(0.6)
         XCTAssertEqual(levelDelegate.levels.map(\.name), ["onClientBotAudioLevel", "onRemoteAudioLevel"])
         XCTAssertEqual(levelDelegate.levels.map(\.level), [0.6, 0.6])
